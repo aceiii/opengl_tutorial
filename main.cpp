@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+
+#define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
 
 namespace {
@@ -11,7 +13,7 @@ namespace {
         0.5f, -0.5f, 0.0f,
         0.0f, 0.5f, 0.0f
     };
-    GLuint vboHandle;
+    GLuint vboHandle, vaoHandle;
     GLuint shaderProgram;
 }
 
@@ -67,6 +69,14 @@ bool setupOpengl() {
     glViewport(0, 0, w, h);
 
     glGenBuffers(1, &vboHandle);
+    glGenVertexArrays(1, &vaoHandle);
+
+    glBindVertexArray(vaoHandle);
+    glBindBuffer(GL_ARRAY_BUFFER, vboHandle);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
 
     GLuint vertexShaderHandle = loadShaderFile(GL_VERTEX_SHADER, "default.vsh");
     if (!vertexShaderHandle) {
@@ -92,12 +102,8 @@ void render() {
     glClearColor(0.787, 0.944, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vboHandle);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
     glUseProgram(shaderProgram);
+    glBindVertexArray(vaoHandle);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
@@ -111,6 +117,10 @@ int main() {
     glfwGetVersion(&major, &minor, &revision);
     std::cout << "GLFW: Version: " << major << "." << minor << "." << revision << std::endl;
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
     int width = 800, height = 600;
