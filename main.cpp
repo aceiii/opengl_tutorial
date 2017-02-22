@@ -20,10 +20,15 @@ int main() {
     GLFWwindow *window = glfwCreateWindow(width, height, "Hello, world!", nullptr, nullptr);
     if (!window) {
         std::cerr << "GLFW: CreateWindow error!" << std::endl;
+
+        glfwTerminate();
+        return -1;
     }
 
     glfwMakeContextCurrent(window);
 
+    const GLubyte* gl_version = glGetString(GL_VERSION);
+    std::cout << "OpenGL: Version: " << gl_version << std::endl;
 
     int frameBufferWidth, frameBufferHeight;
     glfwGetFramebufferSize(window, &frameBufferWidth, &frameBufferHeight);
