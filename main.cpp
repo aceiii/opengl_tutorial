@@ -16,12 +16,20 @@ int main() {
     glfwGetVersion(&major, &minor, &revision);
     std::cout << "GLFW: Version: " << major << "." << minor << "." << revision << std::endl;
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "Hello, world!", nullptr, nullptr);
+    int width = 800, height = 600;
+    GLFWwindow *window = glfwCreateWindow(width, height, "Hello, world!", nullptr, nullptr);
     if (!window) {
         std::cerr << "GLFW: CreateWindow error!" << std::endl;
     }
 
     glfwMakeContextCurrent(window);
+
+
+    int frameBufferWidth, frameBufferHeight;
+    glfwGetFramebufferSize(window, &frameBufferWidth, &frameBufferHeight);
+    std::cout << "GLFW: Framebuffer size: (" << frameBufferWidth << ", " << frameBufferHeight << ")" << std::endl;
+
+    glViewport(0, 0, 200, 200);
 
     while (true) {
         if (glfwWindowShouldClose(window) == GLFW_TRUE) {
