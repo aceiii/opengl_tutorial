@@ -9,9 +9,13 @@ namespace {
     GLFWwindow *window = nullptr;
 
     GLfloat vertices[] = {
-        -0.5f, -0.5f, 0.0f,
+        0.5f, 0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
-        0.0f, 0.5f, 0.0f
+        -0.5f, 0.5f, 0.0f,
+
+        0.5f, -0.5f, 0.0f,
+        -0.5f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f
     };
     GLuint vboHandle, vaoHandle;
     GLuint shaderProgram;
@@ -104,7 +108,7 @@ void render() {
 
     glUseProgram(shaderProgram);
     glBindVertexArray(vaoHandle);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 int main() {
