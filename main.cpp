@@ -16,6 +16,8 @@ int main() {
     glfwGetVersion(&major, &minor, &revision);
     std::cout << "GLFW: Version: " << major << "." << minor << "." << revision << std::endl;
 
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
     int width = 800, height = 600;
     GLFWwindow *window = glfwCreateWindow(width, height, "Hello, world!", nullptr, nullptr);
     if (!window) {
