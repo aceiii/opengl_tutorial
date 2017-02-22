@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <complex>
 
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
@@ -21,6 +22,7 @@ namespace {
 
     GLuint vboHandle, vaoHandle, eboHandle;
     GLuint shaderProgram;
+    GLuint vertexColorLocation;
 }
 
 GLuint loadShaderFile(GLenum shaderType, const std::string &filename) {
@@ -104,6 +106,8 @@ bool setupOpengl() {
         std::cerr << "Failed to create shader program." << std::endl;
     }
 
+    vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+
     return true;
 }
 
@@ -111,8 +115,12 @@ void render() {
     glClearColor(0.787, 0.944, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    GLfloat timeValue = glfwGetTime();
+    GLfloat greenValue = (std::sin(timeValue) / 2) + 0.5;
+    glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
     glUseProgram(shaderProgram);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindVertexArray(vaoHandle);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -147,6 +155,10 @@ int main() {
 
     const GLubyte* gl_version = glGetString(GL_VERSION);
     std::cout << "OpenGL: Version: " << gl_version << std::endl;
+
+    GLint nrAttibutes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttibutes);
+    std::cout << "OpenGL: Maximum number of attributes: " << nrAttibutes << std::endl;
 
     int frameBufferWidth, frameBufferHeight;
     glfwGetFramebufferSize(window, &frameBufferWidth, &frameBufferHeight);
