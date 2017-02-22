@@ -11,13 +11,15 @@ namespace {
     GLfloat vertices[] = {
         0.5f, 0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
-        -0.5f, 0.5f, 0.0f,
-
-        0.5f, -0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
-        -0.5f, 0.5f, 0.0f
+        -0.5f, 0.5f, 0.0f,
     };
-    GLuint vboHandle, vaoHandle;
+    GLuint indices[] = {
+        0, 1, 3,
+        1, 2, 3,
+    };
+
+    GLuint vboHandle, vaoHandle, eboHandle;
     GLuint shaderProgram;
 }
 
@@ -73,6 +75,7 @@ bool setupOpengl() {
     glViewport(0, 0, w, h);
 
     glGenBuffers(1, &vboHandle);
+    glGenBuffers(1, &eboHandle);
     glGenVertexArrays(1, &vaoHandle);
 
     glBindVertexArray(vaoHandle);
@@ -80,6 +83,8 @@ bool setupOpengl() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindVertexArray(0);
 
     GLuint vertexShaderHandle = loadShaderFile(GL_VERTEX_SHADER, "default.vsh");
@@ -106,9 +111,11 @@ void render() {
     glClearColor(0.787, 0.944, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glUseProgram(shaderProgram);
     glBindVertexArray(vaoHandle);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 int main() {
