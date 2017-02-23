@@ -10,14 +10,12 @@ namespace {
     GLFWwindow *window = nullptr;
 
     GLfloat vertices[] = {
-        0.5f, 0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-        -0.5f, 0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
     };
     GLuint indices[] = {
-        0, 1, 3,
-        1, 2, 3,
+        0, 1, 2
     };
 
     GLuint vboHandle, vaoHandle, eboHandle;
@@ -83,8 +81,10 @@ bool setupOpengl() {
     glBindVertexArray(vaoHandle);
     glBindBuffer(GL_ARRAY_BUFFER, vboHandle);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindVertexArray(0);
