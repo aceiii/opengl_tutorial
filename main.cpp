@@ -6,6 +6,8 @@
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
 
+#include "shader.h"
+
 namespace {
     GLFWwindow *window = nullptr;
 
@@ -21,51 +23,6 @@ namespace {
     GLuint vboHandle, vaoHandle, eboHandle;
     GLuint shaderProgram;
     GLuint vertexColorLocation;
-}
-
-GLuint loadShaderFile(GLenum shaderType, const std::string &filename) {
-    std::ifstream f(filename);
-    if (!f.is_open()) {
-        std::cerr << "Unable to open file: " << filename << std::endl;
-        return 0;
-    }
-
-    std::string sourceFile((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
-    const GLchar *shaderSource[] = { sourceFile.c_str() };
-
-    GLuint handle = glCreateShader(shaderType);
-    glShaderSource(handle, 1, shaderSource, nullptr);
-    glCompileShader(handle);
-
-    GLint success;
-    glGetShaderiv(handle, GL_COMPILE_STATUS, &success);
-
-    if (!success) {
-        GLchar infoLog[512];
-        glGetShaderInfoLog(handle, 512, NULL, infoLog);
-        std::cerr << "OpenGL: Shader compilation failed: " << infoLog << std::endl;
-        return 0;
-    }
-
-    return handle;
-}
-
-GLuint createShaderProgram(GLuint vertexShaderHandle, GLuint fragmentShaderHandle) {
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShaderHandle);
-    glAttachShader(shaderProgram, fragmentShaderHandle);
-    glLinkProgram(shaderProgram);
-
-    GLint success;
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        GLchar infoLog[512];
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cerr << "OpenGL: Shader program link failed: " << infoLog << std::endl;
-        return 0;
-    }
-
-    return shaderProgram;
 }
 
 bool setupOpengl() {
@@ -89,19 +46,19 @@ bool setupOpengl() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindVertexArray(0);
 
-    GLuint vertexShaderHandle = loadShaderFile(GL_VERTEX_SHADER, "default.vsh");
+    GLuint vertexShaderHandle = Shader::loadShaderFile(GL_VERTEX_SHADER, "default.vsh");
     if (!vertexShaderHandle) {
         std::cerr << "Failed to create vertex shader." << std::endl;
         return false;
     }
 
-    GLuint fragmentShaderHandle = loadShaderFile(GL_FRAGMENT_SHADER, "default.fsh");
+    GLuint fragmentShaderHandle = Shader::loadShaderFile(GL_FRAGMENT_SHADER, "default.fsh");
     if (!fragmentShaderHandle) {
         std::cerr << "Failed to create fragment shader." << std::endl;
         return false;
     }
 
-    shaderProgram = createShaderProgram(vertexShaderHandle, fragmentShaderHandle);
+    shaderProgram = Shader::createShaderProgram(vertexShaderHandle, fragmentShaderHandle);
     if (!shaderProgram) {
         std::cerr << "Failed to create shader program." << std::endl;
     }
