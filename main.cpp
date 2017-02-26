@@ -21,8 +21,9 @@ namespace {
     };
 
     GLuint vboHandle, vaoHandle, eboHandle;
-    GLuint shaderProgram;
     GLuint vertexColorLocation;
+
+    Shader shader;
 }
 
 bool setupOpengl() {
@@ -46,24 +47,12 @@ bool setupOpengl() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindVertexArray(0);
 
-    GLuint vertexShaderHandle = Shader::loadShaderFile(GL_VERTEX_SHADER, "default.vsh");
-    if (!vertexShaderHandle) {
-        std::cerr << "Failed to create vertex shader." << std::endl;
+    if (!shader.init("default.vsh", "default.fsh")) {
+        std::cerr << "Failed to initialize shaders." << std::endl;
         return false;
     }
 
-    GLuint fragmentShaderHandle = Shader::loadShaderFile(GL_FRAGMENT_SHADER, "default.fsh");
-    if (!fragmentShaderHandle) {
-        std::cerr << "Failed to create fragment shader." << std::endl;
-        return false;
-    }
-
-    shaderProgram = Shader::createShaderProgram(vertexShaderHandle, fragmentShaderHandle);
-    if (!shaderProgram) {
-        std::cerr << "Failed to create shader program." << std::endl;
-    }
-
-    vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+    vertexColorLocation = glGetUniformLocation(shader.program, "ourColor");
 
     return true;
 }
@@ -75,7 +64,8 @@ void render() {
     GLfloat timeValue = glfwGetTime();
     GLfloat greenValue = (std::sin(timeValue) / 2) + 0.5;
     glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-    glUseProgram(shaderProgram);
+
+    shader.use();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindVertexArray(vaoHandle);
