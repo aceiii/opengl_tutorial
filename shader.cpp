@@ -1,18 +1,31 @@
 
 #include "shader.h"
 
-Shader::Shader(const char * vertexPath, const char *fragmentPath) {
+Shader::Shader():program(0) {
+}
+
+Shader::Shader(const char *vertexPath, const char *fragmentPath):program(0) {
+    init(vertexPath, fragmentPath);
+}
+
+void Shader::use() {
+    glUseProgram(this->program);
+}
+
+bool Shader::init(const char *vertexPath, const char *fragmentPath) {
     GLuint vertex = Shader::loadShaderFile(GL_VERTEX_SHADER, vertexPath);
     GLuint fragment = Shader::loadShaderFile(GL_FRAGMENT_SHADER, fragmentPath);
+
+    if (!vertex || !fragment) {
+        return false;
+    }
 
     program = Shader::createShaderProgram(vertex, fragment);
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
-}
 
-void Shader::use() {
-    glUseProgram(this->program);
+    return program != 0;
 }
 
 GLuint Shader::loadShaderFile(GLenum shaderType, const std::string &filename) {

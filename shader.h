@@ -13,8 +13,10 @@ class Shader
 public:
     GLuint program;
 
+    Shader();
     Shader(const char *vertexPath, const char *fragmentPath);
 
+    bool init(const char *vertexPath, const char *fragmentPath);
     void use();
 
     static GLuint loadShaderFile(GLenum shaderType, const std::string &filename);
