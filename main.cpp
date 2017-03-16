@@ -32,6 +32,34 @@ namespace {
     Shader shader;
 }
 
+bool loadTexture(const std::string &name, GLuint textureId) {
+    int width, height;
+    unsigned char *image = SOIL_load_image(name.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+    if (!image) {
+        std::cerr << "loadTexture: Unable to load file '" << name << "'" << std::endl;
+        return false;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        if (error == GL_INVALID_VALUE) {
+            std::cerr << "loadTexture: textureId is invalid" << std::endl;
+        }
+
+        SOIL_free_image_data(image);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        return false;
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    SOIL_free_image_data(image);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return true;
+}
+
 bool setupOpengl() {
     int w, h;
     glfwGetFramebufferSize(window, &w, &h);
@@ -65,33 +93,15 @@ bool setupOpengl() {
     textureLocation1 = glGetUniformLocation(shader.program, "ourTexture2");
 
     glGenTextures(1, &texture0);
-    glBindTexture(GL_TEXTURE_2D, texture0);
-
-    int texWidth, texHeight;
-    std::string imageName = "container.jpg";
-    unsigned char *image = SOIL_load_image(imageName.c_str(), &texWidth, &texHeight, 0, SOIL_LOAD_RGB);
-    if (!image) {
-        std::cerr << "Failed to load image: " << imageName << std::endl;
-        return false;
-    }
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    SOIL_free_image_data(image);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
     glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
 
-    imageName = "awesomeface.png";
-    image = SOIL_load_image(imageName.c_str(), &texWidth, &texHeight, 0, SOIL_LOAD_RGB);
-    if (!image) {
-        std::cerr << "Failed to load image: " << imageName << std::endl;
+    if (!loadTexture("container.jpg", texture0)) {
         return false;
     }
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    SOIL_free_image_data(image);
-    glBindTexture(GL_TEXTURE_2D, 0);
+
+    if (!loadTexture("awesomeface.png", texture1)) {
+        return false;
+    }
 
     return true;
 }
