@@ -21,13 +21,13 @@ namespace {
 		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // Top Left
     };
     GLuint indices[] = {
-        0, 1, 2,
-		0, 2, 3,
+        0, 1, 3,
+		1, 3, 2,
     };
 
     GLuint vboHandle, vaoHandle, eboHandle;
-    GLuint vertexColorLocation, textureLocation;
-    GLuint texture;
+    GLuint vertexColorLocation, textureLocation0, textureLocation1;
+    GLuint texture0, texture1;
 
     Shader shader;
 }
@@ -61,14 +61,29 @@ bool setupOpengl() {
     }
 
     vertexColorLocation = glGetUniformLocation(shader.program, "ourColor");
-    textureLocation = glGetUniformLocation(shader.program, "ourTexture");
+    textureLocation0 = glGetUniformLocation(shader.program, "ourTexture1");
+    textureLocation1 = glGetUniformLocation(shader.program, "ourTexture2");
 
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glGenTextures(1, &texture0);
+    glBindTexture(GL_TEXTURE_2D, texture0);
 
     int texWidth, texHeight;
-    const char *imageName = "container.jpg";
-    unsigned char *image = SOIL_load_image(imageName, &texWidth, &texHeight, 0, SOIL_LOAD_RGB);
+    std::string imageName = "container.jpg";
+    unsigned char *image = SOIL_load_image(imageName.c_str(), &texWidth, &texHeight, 0, SOIL_LOAD_RGB);
+    if (!image) {
+        std::cerr << "Failed to load image: " << imageName << std::endl;
+        return false;
+    }
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    SOIL_free_image_data(image);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    imageName = "awesomeface.png";
+    image = SOIL_load_image(imageName.c_str(), &texWidth, &texHeight, 0, SOIL_LOAD_RGB);
     if (!image) {
         std::cerr << "Failed to load image: " << imageName << std::endl;
         return false;
@@ -89,17 +104,17 @@ void render() {
     GLfloat greenValue = (std::sin(timeValue) / 2) + 0.5;
     glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
-    /*
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(textureLocation, 0);
-    */
+    glBindTexture(GL_TEXTURE_2D, texture0);
+    glUniform1i(textureLocation1, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glUniform1i(textureLocation1, 1);
 
     shader.use();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindVertexArray(vaoHandle);
-    glBindTexture(GL_TEXTURE_2D, texture);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
