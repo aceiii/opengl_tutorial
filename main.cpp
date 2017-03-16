@@ -8,6 +8,8 @@
 
 #include <SOIL.h>
 
+#include "imgui.h"
+#include "imgui_impl_glfw_gl3.h"
 #include "shader.h"
 
 namespace {
@@ -129,6 +131,9 @@ void render() {
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
+void renderImGui() {
+}
+
 int main() {
 
     if (!glfwInit()) {
@@ -175,16 +180,23 @@ int main() {
         return -1;
     }
 
+    ImGui_ImplGlfwGL3_Init(window, true);
+
+    ImGuiIO &io = ImGui::GetIO();
+    io.MouseDrawCursor = true;
+
     while (true) {
         if (glfwWindowShouldClose(window) == GLFW_TRUE) {
             std::cout << "GLFW: Closing window." << std::endl;
             break;
         }
 
-        render();
-
-        glfwSwapBuffers(window);
         glfwPollEvents();
+        ImGui_ImplGlfwGL3_NewFrame();
+        render();
+        renderImGui();
+        ImGui::Render();
+        glfwSwapBuffers(window);
     }
 
     if (window) {
@@ -192,6 +204,7 @@ int main() {
         window = nullptr;
     }
 
+    ImGui_ImplGlfwGL3_Shutdown();
     glfwTerminate();
 
     return 0;
