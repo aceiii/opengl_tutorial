@@ -9,6 +9,7 @@ uniform sampler2D ourTexture1;
 uniform sampler2D ourTexture2;
 
 void main() {
-    color = mix(texture(ourTexture1, TexCoord), texture(ourTexture2, TexCoord), 0.2);
+    vec2 uv = vec2(TexCoord.x, -TexCoord.y);
+    color = mix(texture(ourTexture1, uv), texture(ourTexture2, uv), 0.2);
 }
 
