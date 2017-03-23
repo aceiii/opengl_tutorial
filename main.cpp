@@ -130,7 +130,7 @@ void render() {
 
     glm::mat4 trans;
     trans = glm::translate(trans, glm::vec3(0.5, -0.5, 0.0));
-    trans = glm::rotate(trans, (GLfloat)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
+    trans = glm::rotate(trans, (GLfloat)timeValue, glm::vec3(0.0, 0.0, 1.0));
     trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
     glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(trans));
 
@@ -139,6 +139,15 @@ void render() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindVertexArray(vaoHandle);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    trans = glm::mat4();
+    trans = glm::translate(trans, glm::vec3(-0.25, 0.0, 0.0));
+    trans = glm::rotate(trans, (GLfloat)timeValue * -0.37f, glm::vec3(0.0, 0.0, 1.0));
+    trans = glm::translate(trans, glm::vec3(0.0, 0.5, 0.0));
+    trans = glm::rotate(trans, (GLfloat)timeValue * -1.2f, glm::vec3(0.0, 0.0, 1.0));
+    glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(trans));
+
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
