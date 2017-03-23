@@ -32,7 +32,7 @@ namespace {
     };
 
     GLuint vboHandle, vaoHandle, eboHandle;
-    GLuint vertexColorLocation, textureLocation0, textureLocation1;
+    GLuint vertexColorLocation, textureLocation0, textureLocation1, transformLocation;
     GLuint texture0, texture1;
 
     Shader shader;
@@ -97,6 +97,7 @@ bool setupOpengl() {
     vertexColorLocation = glGetUniformLocation(shader.program, "ourColor");
     textureLocation0 = glGetUniformLocation(shader.program, "ourTexture1");
     textureLocation1 = glGetUniformLocation(shader.program, "ourTexture2");
+    transformLocation = glGetUniformLocation(shader.program, "transform");
 
     glGenTextures(1, &texture0);
     glGenTextures(1, &texture1);
@@ -126,6 +127,12 @@ void render() {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture1);
     glUniform1i(textureLocation1, 1);
+
+    glm::mat4 trans;
+    trans = glm::translate(trans, glm::vec3(0.5, -0.5, 0.0));
+    trans = glm::rotate(trans, (GLfloat)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
+    trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+    glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(trans));
 
     shader.use();
 
