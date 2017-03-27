@@ -32,10 +32,13 @@ namespace {
     };
 
     GLuint vboHandle, vaoHandle, eboHandle;
-    GLuint vertexColorLocation, textureLocation0, textureLocation1, transformLocation;
+    GLuint vertexColorLocation, textureLocation0, textureLocation1;
+    GLuint modelLocation, viewLocation, projectionLocation;
     GLuint texture0, texture1;
 
     Shader shader;
+
+    glm::mat4 projection, view;
 }
 
 bool loadTexture(const std::string &name, GLuint textureId) {
@@ -97,7 +100,12 @@ bool setupOpengl() {
     vertexColorLocation = glGetUniformLocation(shader.program, "ourColor");
     textureLocation0 = glGetUniformLocation(shader.program, "ourTexture1");
     textureLocation1 = glGetUniformLocation(shader.program, "ourTexture2");
-    transformLocation = glGetUniformLocation(shader.program, "transform");
+    modelLocation = glGetUniformLocation(shader.program, "model");
+    viewLocation = glGetUniformLocation(shader.program, "view");
+    projectionLocation = glGetUniformLocation(shader.program, "projection");
+
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    projection = glm::perspective(glm::radians(45.0f), GLfloat(800) / GLfloat(600), 0.1f, 100.0f);
 
     glGenTextures(1, &texture0);
     glGenTextures(1, &texture1);
@@ -128,25 +136,18 @@ void render() {
     glBindTexture(GL_TEXTURE_2D, texture1);
     glUniform1i(textureLocation1, 1);
 
-    glm::mat4 trans;
-    trans = glm::translate(trans, glm::vec3(0.5, -0.5, 0.0));
-    trans = glm::rotate(trans, (GLfloat)timeValue, glm::vec3(0.0, 0.0, 1.0));
-    trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-    glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(trans));
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
     shader.use();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindVertexArray(vaoHandle);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-    trans = glm::mat4();
-    trans = glm::translate(trans, glm::vec3(-0.25, 0.0, 0.0));
-    trans = glm::rotate(trans, (GLfloat)timeValue * -0.37f, glm::vec3(0.0, 0.0, 1.0));
-    trans = glm::translate(trans, glm::vec3(0.0, 0.5, 0.0));
-    trans = glm::rotate(trans, (GLfloat)timeValue * -1.2f, glm::vec3(0.0, 0.0, 1.0));
-    glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(trans));
+    glm::mat4 trans;
+    trans = glm::rotate(trans, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(trans));
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
