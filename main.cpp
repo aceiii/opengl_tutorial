@@ -37,6 +37,7 @@ namespace {
 		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
 		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
 	};
+
 	GLuint indices[] = {
 		0, 1, 2,
 		2, 3, 0,
@@ -51,6 +52,32 @@ namespace {
         3, 2, 11,
         11, 15, 3
 	};
+
+	glm::vec3 cubePositions[] = {
+		glm::vec3( 0.0f,  0.0f,  0.0f),
+		glm::vec3( 2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3( 2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3( 1.3f, -2.0f, -2.5f),
+		glm::vec3( 1.5f,  2.0f, -2.5f),
+		glm::vec3( 1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f),
+	};
+
+    GLfloat cubeRotations[] = {
+        glm::radians(20.0f),
+        glm::radians(32.0f),
+        glm::radians(-32.0f),
+        glm::radians(50.0f),
+        glm::radians(-50.0f),
+        glm::radians(128.0f),
+        glm::radians(90.0f),
+        glm::radians(-90.0f),
+        glm::radians(-128.0f),
+        glm::radians(13.3f),
+    };
 
     GLuint vboHandle, vaoHandle, eboHandle;
     GLuint vertexColorLocation, textureLocation0, textureLocation1;
@@ -166,12 +193,18 @@ void render() {
     glBindVertexArray(vaoHandle);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
 
-    glm::mat4 trans;
-    trans = glm::rotate(trans, (GLfloat)timeValue * glm::radians(50.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    trans = glm::rotate(trans, (GLfloat)timeValue * glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(trans));
+    for (GLuint i = 0; i < 10; i += 1) {
+        glm::mat4 model;
+        model = glm::translate(model, cubePositions[i]);
 
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        GLfloat angle = cubeRotations[i] * GLfloat(timeValue);
+        model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
+        glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    }
+
+	glBindVertexArray(0);
 }
 
 void renderImGui() {
