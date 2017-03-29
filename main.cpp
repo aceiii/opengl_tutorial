@@ -144,6 +144,8 @@ void render() {
     glClearColor(0.787, 0.944, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+    glEnable(GL_DEPTH_TEST);
+
     GLfloat timeValue = glfwGetTime();
     GLfloat greenValue = (std::sin(timeValue) / 2) + 0.5;
     glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
@@ -165,7 +167,8 @@ void render() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
 
     glm::mat4 trans;
-    trans = glm::rotate(trans, (GLfloat)glfwGetTime() * glm::radians(50.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    trans = glm::rotate(trans, (GLfloat)timeValue * glm::radians(50.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    trans = glm::rotate(trans, (GLfloat)timeValue * glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(trans));
 
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
