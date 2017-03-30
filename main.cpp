@@ -91,6 +91,8 @@ namespace {
     Shader shader;
 
     glm::mat4 projection;
+
+    bool keys[1024];
 }
 
 bool loadTexture(const std::string &name, GLuint textureId) {
@@ -122,20 +124,28 @@ bool loadTexture(const std::string &name, GLuint textureId) {
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS) {
+        keys[key] = true;
+    } else if (action == GLFW_RELEASE) {
+        keys[key] = false;
+    }
+}
+
+void do_movement() {
     const GLfloat cameraSpeed = 0.05f;
 
     std::cout << "key press" << std::endl;
 
-    if (key == GLFW_KEY_W) {
+    if (keys[GLFW_KEY_W]) {
         cameraPos  += cameraSpeed * cameraFront;
     }
-    if (key == GLFW_KEY_S) {
+    if (keys[GLFW_KEY_S]) {
         cameraPos -= cameraSpeed * cameraFront;
     }
-    if (key == GLFW_KEY_A) {
+    if (keys[GLFW_KEY_A]) {
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     }
-    if (key == GLFW_KEY_D) {
+    if (keys[GLFW_KEY_D]) {
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     }
 }
@@ -235,9 +245,6 @@ void render() {
 void renderImGui() {
 }
 
-void do_movement() {
-}
-
 int main() {
 
     if (!glfwInit()) {
@@ -298,7 +305,7 @@ int main() {
         }
 
         glfwPollEvents();
-        //do_movement();
+        do_movement();
 
         ImGui_ImplGlfwGL3_NewFrame();
         render();
