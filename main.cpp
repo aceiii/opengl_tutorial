@@ -93,6 +93,9 @@ namespace {
     glm::mat4 projection;
 
     bool keys[1024];
+
+    GLfloat lastFrame = 0.0f;
+    GLfloat deltaTime = 0.0f;
 }
 
 bool loadTexture(const std::string &name, GLuint textureId) {
@@ -132,9 +135,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 }
 
 void do_movement() {
-    const GLfloat cameraSpeed = 0.05f;
-
-    std::cout << "key press" << std::endl;
+    const GLfloat cameraSpeed = 5.0f * deltaTime;
 
     if (keys[GLFW_KEY_W]) {
         cameraPos  += cameraSpeed * cameraFront;
@@ -303,6 +304,10 @@ int main() {
             std::cout << "GLFW: Closing window." << std::endl;
             break;
         }
+
+        GLfloat currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
         glfwPollEvents();
         do_movement();
