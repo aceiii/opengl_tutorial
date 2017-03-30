@@ -80,6 +80,8 @@ namespace {
     };
 
     glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
     GLuint vboHandle, vaoHandle, eboHandle;
     GLuint vertexColorLocation, textureLocation0, textureLocation1;
@@ -117,6 +119,25 @@ bool loadTexture(const std::string &name, GLuint textureId) {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     return true;
+}
+
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    const GLfloat cameraSpeed = 0.05f;
+
+    std::cout << "key press" << std::endl;
+
+    if (key == GLFW_KEY_W) {
+        cameraPos  += cameraSpeed * cameraFront;
+    }
+    if (key == GLFW_KEY_S) {
+        cameraPos -= cameraSpeed * cameraFront;
+    }
+    if (key == GLFW_KEY_A) {
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    }
+    if (key == GLFW_KEY_D) {
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    }
 }
 
 bool setupOpengl() {
@@ -187,11 +208,8 @@ void render() {
 
     glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
-    GLfloat radius = 10.0f;
-    GLfloat camX = sin(timeValue) * radius;
-    GLfloat camZ = cos(timeValue) * radius;
     glm::mat4 view;
-    view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
     shader.use();
@@ -215,6 +233,9 @@ void render() {
 }
 
 void renderImGui() {
+}
+
+void do_movement() {
 }
 
 int main() {
@@ -244,6 +265,8 @@ int main() {
 
     glfwMakeContextCurrent(window);
 
+    glfwSetKeyCallback(window, key_callback);
+
     const GLubyte* gl_version = glGetString(GL_VERSION);
     std::cout << "OpenGL: Version: " << gl_version << std::endl;
 
@@ -263,7 +286,7 @@ int main() {
         return -1;
     }
 
-    ImGui_ImplGlfwGL3_Init(window, true);
+    ImGui_ImplGlfwGL3_Init(window, false);
 
     ImGuiIO &io = ImGui::GetIO();
     io.MouseDrawCursor = true;
@@ -275,6 +298,8 @@ int main() {
         }
 
         glfwPollEvents();
+        //do_movement();
+
         ImGui_ImplGlfwGL3_NewFrame();
         render();
         renderImGui();
