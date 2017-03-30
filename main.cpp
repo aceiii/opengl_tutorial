@@ -79,6 +79,8 @@ namespace {
         glm::radians(13.3f),
     };
 
+    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+
     GLuint vboHandle, vaoHandle, eboHandle;
     GLuint vertexColorLocation, textureLocation0, textureLocation1;
     GLuint modelLocation, viewLocation, projectionLocation;
@@ -86,7 +88,7 @@ namespace {
 
     Shader shader;
 
-    glm::mat4 projection, view;
+    glm::mat4 projection;
 }
 
 bool loadTexture(const std::string &name, GLuint textureId) {
@@ -150,7 +152,6 @@ bool setupOpengl() {
     viewLocation = glGetUniformLocation(shader.program, "view");
     projectionLocation = glGetUniformLocation(shader.program, "projection");
 
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
     projection = glm::perspective(glm::radians(45.0f), GLfloat(800) / GLfloat(600), 0.1f, 100.0f);
 
     glGenTextures(1, &texture0);
@@ -185,6 +186,12 @@ void render() {
     glUniform1i(textureLocation1, 1);
 
     glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+
+    GLfloat radius = 10.0f;
+    GLfloat camX = sin(timeValue) * radius;
+    GLfloat camZ = cos(timeValue) * radius;
+    glm::mat4 view;
+    view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
     shader.use();
