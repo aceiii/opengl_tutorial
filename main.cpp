@@ -88,6 +88,8 @@ namespace {
     GLfloat lastX = 800.0f / 2.0f;
     GLfloat lastY = 600.0f / 2.0f;
 
+    GLfloat fov = 45.0f;
+
     GLuint vboHandle, vaoHandle, eboHandle;
     GLuint vertexColorLocation, textureLocation0, textureLocation1;
     GLuint modelLocation, viewLocation, projectionLocation;
@@ -173,6 +175,18 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     cameraFront = glm::normalize(front);
 }
 
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+    if (fov >= 1.0f && fov <= 45.0f) {
+        fov -= yoffset;
+    }
+    if (fov <= 1.0f) {
+        fov = 1.0f;
+    }
+    if (fov >= 45.0f) {
+        fov = 45.0f;
+    }
+}
+
 void do_movement() {
     const GLfloat cameraSpeed = 5.0f * deltaTime;
 
@@ -223,7 +237,7 @@ bool setupOpengl() {
     viewLocation = glGetUniformLocation(shader.program, "view");
     projectionLocation = glGetUniformLocation(shader.program, "projection");
 
-    projection = glm::perspective(glm::radians(45.0f), GLfloat(800) / GLfloat(600), 0.1f, 100.0f);
+    projection = glm::perspective(glm::radians(fov), GLfloat(800) / GLfloat(600), 0.1f, 100.0f);
 
     glGenTextures(1, &texture0);
     glGenTextures(1, &texture1);
@@ -256,6 +270,7 @@ void render() {
     glBindTexture(GL_TEXTURE_2D, texture1);
     glUniform1i(textureLocation1, 1);
 
+    projection = glm::perspective(glm::radians(fov), GLfloat(800) / GLfloat(600), 0.1f, 100.0f);
     glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
     glm::mat4 view;
@@ -314,6 +329,7 @@ int main() {
 
     glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     const GLubyte* gl_version = glGetString(GL_VERSION);
