@@ -83,6 +83,11 @@ namespace {
     glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+    GLfloat yaw = -90.0f;
+    GLfloat pitch = 0.0f;
+    GLfloat lastX = 800.0f / 2.0f;
+    GLfloat lastY = 600.0f / 2.0f;
+
     GLuint vboHandle, vaoHandle, eboHandle;
     GLuint vertexColorLocation, textureLocation0, textureLocation1;
     GLuint modelLocation, viewLocation, projectionLocation;
@@ -132,6 +137,40 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     } else if (action == GLFW_RELEASE) {
         keys[key] = false;
     }
+}
+
+bool firstMouse = true;
+void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    GLfloat xoffset = xpos - lastX;
+    GLfloat yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    GLfloat sensitivity = 0.05;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f) {
+        pitch = 89.0f;
+    } else if (pitch < -89.0f) {
+        pitch = -89.0f;
+    }
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+    cameraFront = glm::normalize(front);
 }
 
 void do_movement() {
@@ -274,6 +313,8 @@ int main() {
     glfwMakeContextCurrent(window);
 
     glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     const GLubyte* gl_version = glGetString(GL_VERSION);
     std::cout << "OpenGL: Version: " << gl_version << std::endl;
@@ -297,7 +338,7 @@ int main() {
     ImGui_ImplGlfwGL3_Init(window, false);
 
     ImGuiIO &io = ImGui::GetIO();
-    io.MouseDrawCursor = true;
+    //io.MouseDrawCursor = true;
 
     while (true) {
         if (glfwWindowShouldClose(window) == GLFW_TRUE) {
