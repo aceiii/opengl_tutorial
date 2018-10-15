@@ -1,5 +1,8 @@
-
 #include "shader.h"
+
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
 Shader::Shader():program(0) {
 }

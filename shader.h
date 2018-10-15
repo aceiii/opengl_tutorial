@@ -2,10 +2,6 @@
 #define __SHADER_H__
 
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-
 #include <GLFW/glfw3.h>
 
 class Shader
