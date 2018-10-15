@@ -15,6 +15,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw_gl3.h"
 #include "shader.h"
+#include "camera.h"
 
 namespace {
     GLFWwindow *window = nullptr;
@@ -79,16 +80,8 @@ namespace {
         glm::radians(13.3f),
     };
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
-    GLfloat yaw = -90.0f;
-    GLfloat pitch = 0.0f;
     GLfloat lastX = 800.0f / 2.0f;
     GLfloat lastY = 600.0f / 2.0f;
-
-    GLfloat fov = 45.0f;
 
     GLuint vboHandle, vaoHandle, eboHandle;
     GLuint vertexColorLocation, textureLocation0, textureLocation1;
@@ -97,12 +90,15 @@ namespace {
 
     Shader shader;
 
-    glm::mat4 projection;
-
     bool keys[1024];
 
     GLfloat lastFrame = 0.0f;
     GLfloat deltaTime = 0.0f;
+
+    const int WIDTH = 800;
+    const int HEIGHT = 600;
+
+    Camera camera;
 }
 
 bool loadTexture(const std::string &name, GLuint textureId) {
@@ -149,8 +145,8 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
         firstMouse = false;
     }
 
-    GLfloat xoffset = xpos - lastX;
-    GLfloat yoffset = lastY - ypos;
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
     lastX = xpos;
     lastY = ypos;
 
@@ -158,24 +154,16 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
-    yaw += xoffset;
-    pitch += yoffset;
+    camera.moveTarget(xoffset, yoffset);
 
-    if (pitch > 89.0f) {
-        pitch = 89.0f;
-    } else if (pitch < -89.0f) {
-        pitch = -89.0f;
-    }
+    /*
 
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front.y = sin(glm::radians(pitch));
-    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
-    cameraFront = glm::normalize(front);
+    */
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+    float fov = camera.getFieldOfView();
+
     if (fov >= 1.0f && fov <= 45.0f) {
         fov -= yoffset;
     }
@@ -185,23 +173,26 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     if (fov >= 45.0f) {
         fov = 45.0f;
     }
+
+    camera.setFieldOfView(fov);
 }
 
 void do_movement() {
     const GLfloat cameraSpeed = 5.0f * deltaTime;
 
     if (keys[GLFW_KEY_W]) {
-        cameraPos  += cameraSpeed * cameraFront;
+        camera.move(FORWARD, cameraSpeed);
     }
     if (keys[GLFW_KEY_S]) {
-        cameraPos -= cameraSpeed * cameraFront;
+        camera.move(BACKWARD, cameraSpeed);
     }
     if (keys[GLFW_KEY_A]) {
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.move(LEFT, cameraSpeed);
     }
     if (keys[GLFW_KEY_D]) {
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.move(RIGHT, cameraSpeed);
     }
+
 }
 
 bool setupOpengl() {
@@ -237,8 +228,6 @@ bool setupOpengl() {
     viewLocation = glGetUniformLocation(shader.program, "view");
     projectionLocation = glGetUniformLocation(shader.program, "projection");
 
-    projection = glm::perspective(glm::radians(fov), GLfloat(800) / GLfloat(600), 0.1f, 100.0f);
-
     glGenTextures(1, &texture0);
     glGenTextures(1, &texture1);
 
@@ -270,11 +259,10 @@ void render() {
     glBindTexture(GL_TEXTURE_2D, texture1);
     glUniform1i(textureLocation1, 1);
 
-    projection = glm::perspective(glm::radians(fov), GLfloat(800) / GLfloat(600), 0.1f, 100.0f);
-    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+    glm::mat4 projection = camera.getProjectionMatrix();
+    glm::mat4 view = camera.getViewMatrix();
 
-    glm::mat4 view;
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
     shader.use();
@@ -351,9 +339,11 @@ int main() {
         return -1;
     }
 
+    camera.init(WIDTH, HEIGHT, 45.0F, glm::vec3(0.0f, 0.0f, 3.0f));
+
     ImGui_ImplGlfwGL3_Init(window, false);
 
-    ImGuiIO &io = ImGui::GetIO();
+    //ImGuiIO &io = ImGui::GetIO();
     //io.MouseDrawCursor = true;
 
     while (true) {
