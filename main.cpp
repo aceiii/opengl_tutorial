@@ -231,11 +231,11 @@ bool setupOpengl() {
     glGenTextures(1, &texture0);
     glGenTextures(1, &texture1);
 
-    if (!loadTexture("container.jpg", texture0)) {
+    if (!loadTexture("resources/texture/container.jpg", texture0)) {
         return false;
     }
 
-    if (!loadTexture("awesomeface.png", texture1)) {
+    if (!loadTexture("resources/texture/awesomeface.png", texture1)) {
         return false;
     }
 
