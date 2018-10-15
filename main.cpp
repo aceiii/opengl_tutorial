@@ -216,7 +216,7 @@ bool setupOpengl() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindVertexArray(0);
 
-    if (!shader.init("default.vsh", "default.fsh")) {
+    if (!shader.init("resources/shader/default.vsh", "resources/shader/default.fsh")) {
         std::cerr << "Failed to initialize shaders." << std::endl;
         return false;
     }
