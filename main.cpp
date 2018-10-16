@@ -80,15 +80,18 @@ namespace {
         glm::radians(13.3f),
     };
 
+    GLfloat lampScale = 0.2f;
+    glm::vec3 lampPosition(3.0f, 2.3f, -1.4f);
+
     GLfloat lastX = 800.0f / 2.0f;
     GLfloat lastY = 600.0f / 2.0f;
 
-    GLuint vboHandle, vaoHandle, eboHandle;
-    GLuint vertexColorLocation, textureLocation0, textureLocation1;
-    GLuint modelLocation, viewLocation, projectionLocation;
+    GLuint vboHandle, vaoHandle, eboHandle, lightVaoHandle;
+    GLuint textureLocation0, textureLocation1;
     GLuint texture0, texture1;
 
     Shader shader;
+    Shader lampShader;
 
     bool keys[1024];
 
@@ -155,10 +158,6 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     yoffset *= sensitivity;
 
     camera.moveTarget(xoffset, yoffset);
-
-    /*
-
-    */
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
@@ -201,6 +200,8 @@ bool setupOpengl() {
 
     glViewport(0, 0, w, h);
 
+    /// Initialize container ==================================================
+
     glGenBuffers(1, &vboHandle);
     glGenBuffers(1, &eboHandle);
     glGenVertexArrays(1, &vaoHandle);
@@ -217,16 +218,12 @@ bool setupOpengl() {
     glBindVertexArray(0);
 
     if (!shader.init("resources/shader/default.vsh", "resources/shader/default.fsh")) {
-        std::cerr << "Failed to initialize shaders." << std::endl;
+        std::cerr << "Failed to initialize default shaders." << std::endl;
         return false;
     }
 
-    vertexColorLocation = glGetUniformLocation(shader.program, "ourColor");
     textureLocation0 = glGetUniformLocation(shader.program, "ourTexture1");
     textureLocation1 = glGetUniformLocation(shader.program, "ourTexture2");
-    modelLocation = glGetUniformLocation(shader.program, "model");
-    viewLocation = glGetUniformLocation(shader.program, "view");
-    projectionLocation = glGetUniformLocation(shader.program, "projection");
 
     glGenTextures(1, &texture0);
     glGenTextures(1, &texture1);
@@ -236,6 +233,25 @@ bool setupOpengl() {
     }
 
     if (!loadTexture("resources/texture/awesomeface.png", texture1)) {
+        return false;
+    }
+
+    /// Initialize light cube =================================================
+    glGenVertexArrays(1, &lightVaoHandle);
+
+    glBindVertexArray(lightVaoHandle);
+    glBindBuffer(GL_ARRAY_BUFFER, vboHandle);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBindVertexArray(0);
+
+    if (!lampShader.init("resources/shader/lamp.vsh", "resources/shader/lamp.fsh")) {
+        std::cerr << "Failed to initialize lamp shaders." << std::endl;
         return false;
     }
 
@@ -250,7 +266,10 @@ void render() {
 
     GLfloat timeValue = glfwGetTime();
     GLfloat greenValue = (std::sin(timeValue) / 2) + 0.5;
-    glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+    // Draw container cubes
+
+    shader.use();
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture0);
@@ -262,10 +281,9 @@ void render() {
     glm::mat4 projection = camera.getProjectionMatrix();
     glm::mat4 view = camera.getViewMatrix();
 
-    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
-
-    shader.use();
+    shader.setVec4("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
+    shader.setMat4("projection", projection);
+    shader.setMat4("view", view);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindVertexArray(vaoHandle);
@@ -277,12 +295,30 @@ void render() {
 
         GLfloat angle = cubeRotations[i] * GLfloat(timeValue);
         model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
-        glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
 
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        shader.setMat4("model", model);
+
+        glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
     }
 
-	glBindVertexArray(0);
+    // Draw lamp
+
+    lampShader.use();
+    lampShader.setMat4("projection", projection);
+    lampShader.setMat4("view", view);
+
+    glm::mat4 lampModel;
+    lampModel = glm::rotate(lampModel, GLfloat(timeValue) * glm::radians(128.0f), glm::vec3(-0.3, 1, 0));
+    lampModel = glm::translate(lampModel, lampPosition);
+    lampModel = glm::scale(lampModel, glm::vec3(lampScale));
+    lampShader.setMat4("model", lampModel);
+
+    glBindVertexArray(lightVaoHandle);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
+
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
 }
 
 void renderImGui() {
