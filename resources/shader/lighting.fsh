@@ -1,14 +1,11 @@
 #version 330 core
 
-in vec2 TexCoord;
-
 out vec4 color;
 
-uniform sampler2D ourTexture1;
-uniform sampler2D ourTexture2;
+uniform vec3 objectColor;
+uniform vec3 lightColor;
 
 void main() {
-    vec2 uv = vec2(TexCoord.x, -TexCoord.y);
-    color = mix(texture(ourTexture1, uv), texture(ourTexture2, uv), 0.2);
+    color = vec4(lightColor * objectColor, 1.0);
 }
 

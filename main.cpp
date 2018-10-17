@@ -217,7 +217,7 @@ bool setupOpengl() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glBindVertexArray(0);
 
-    if (!shader.init("resources/shader/default.vsh", "resources/shader/default.fsh")) {
+    if (!shader.init("resources/shader/lighting.vsh", "resources/shader/lighting.fsh")) {
         std::cerr << "Failed to initialize default shaders." << std::endl;
         return false;
     }
@@ -273,14 +273,18 @@ void render() {
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture0);
-    glUniform1i(textureLocation1, 0);
+
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture1);
-    glUniform1i(textureLocation1, 1);
+
+    shader.setInt("ourTexture1", 0);
+    shader.setInt("ourTexture2", 1);
 
     glm::mat4 projection = camera.getProjectionMatrix();
     glm::mat4 view = camera.getViewMatrix();
 
+    shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+    shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
     shader.setVec4("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
     shader.setMat4("projection", projection);
     shader.setMat4("view", view);
