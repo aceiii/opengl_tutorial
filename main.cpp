@@ -103,6 +103,7 @@ namespace {
     Shader shader;
     Shader lampShader;
 
+    bool hide_cursor = true;
     bool keys[1024];
 
     GLfloat lastFrame = 0.0f;
@@ -143,6 +144,18 @@ bool loadTexture(const std::string &name, GLuint textureId) {
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+
+    std::cout << "keypress: " << key << ", " <<  scancode << '\n';
+
+    if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
+        hide_cursor = !hide_cursor;
+        if (hide_cursor) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        } else {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+    }
+
     if (action == GLFW_PRESS) {
         keys[key] = true;
     } else if (action == GLFW_RELEASE) {
@@ -152,6 +165,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 bool firstMouse = true;
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+
     if (firstMouse) {
         lastX = xpos;
         lastY = ypos;
@@ -167,7 +181,10 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
-    camera.moveTarget(xoffset, yoffset);
+    if (hide_cursor) {
+        camera.moveTarget(xoffset, yoffset);
+    }
+
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
@@ -344,6 +361,7 @@ void render() {
 }
 
 void renderImGui() {
+    ImGui::ShowTestWindow();
 }
 
 int main() {
@@ -419,8 +437,12 @@ int main() {
 
         ImGui_ImplGlfwGL3_NewFrame();
         render();
-        renderImGui();
-        ImGui::Render();
+
+        if (!hide_cursor) {
+            renderImGui();
+            ImGui::Render();
+        }
+
         glfwSwapBuffers(window);
     }
 
