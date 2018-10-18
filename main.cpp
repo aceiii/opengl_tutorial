@@ -293,10 +293,17 @@ void render() {
     lampModel = glm::translate(lampModel, lampPosition);
     lampModel = glm::scale(lampModel, glm::vec3(lampScale));
 
+    shader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+    shader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+    shader.setVec3("material.specular", 1.0f, 0.5f, 0.31f);
+    shader.setFloat("material.shininess", 32.0f);
+
+    shader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+    shader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+    shader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+	shader.setVec3("light.position", glm::vec3(lampModel * glm::vec4(lampPosition, 1.0)));
+
     shader.setVec3("viewPos", camera.getPosition());
-    shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-    shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-	shader.setVec3("lightPos", glm::vec3(lampModel * glm::vec4(lampPosition, 1.0)));
     shader.setMat4("projection", projection);
     shader.setMat4("view", view);
 
