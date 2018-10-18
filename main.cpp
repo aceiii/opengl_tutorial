@@ -288,10 +288,15 @@ void render() {
     glm::mat4 projection = camera.getProjectionMatrix();
     glm::mat4 view = camera.getViewMatrix();
 
+    glm::mat4 lampModel;
+    lampModel = glm::rotate(lampModel, GLfloat(timeValue) * glm::radians(32.0f), glm::vec3(-0.3, 1, 0));
+    lampModel = glm::translate(lampModel, lampPosition);
+    lampModel = glm::scale(lampModel, glm::vec3(lampScale));
+
     shader.setVec3("viewPos", camera.getPosition());
     shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
     shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-	shader.setVec3("lightPos", lampPosition);
+	shader.setVec3("lightPos", glm::vec3(lampModel * glm::vec4(lampPosition, 1.0)));
     shader.setMat4("projection", projection);
     shader.setMat4("view", view);
 
@@ -315,11 +320,6 @@ void render() {
     lampShader.use();
     lampShader.setMat4("projection", projection);
     lampShader.setMat4("view", view);
-
-    glm::mat4 lampModel;
-    //lampModel = glm::rotate(lampModel, GLfloat(timeValue) * glm::radians(128.0f), glm::vec3(-0.3, 1, 0));
-    lampModel = glm::translate(lampModel, lampPosition);
-    lampModel = glm::scale(lampModel, glm::vec3(lampScale));
     lampShader.setMat4("model", lampModel);
 
     glBindVertexArray(lightVaoHandle);
