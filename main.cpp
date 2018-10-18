@@ -288,6 +288,7 @@ void render() {
     glm::mat4 projection = camera.getProjectionMatrix();
     glm::mat4 view = camera.getViewMatrix();
 
+    shader.setVec3("viewPos", camera.getPosition());
     shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
     shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 	shader.setVec3("lightPos", lampPosition);
