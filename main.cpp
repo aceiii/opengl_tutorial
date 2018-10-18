@@ -298,8 +298,16 @@ void render() {
     shader.setVec3("material.specular", 1.0f, 0.5f, 0.31f);
     shader.setFloat("material.shininess", 32.0f);
 
-    shader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-    shader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+    glm::vec3 lightColor;
+    lightColor.x = sin(timeValue * 2.0f);
+    lightColor.y = sin(timeValue * 0.7f);
+    lightColor.z = sin(timeValue * 1.3f);
+
+    glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+
+    shader.setVec3("light.ambient", ambientColor);
+    shader.setVec3("light.diffuse", diffuseColor);
     shader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 	shader.setVec3("light.position", glm::vec3(lampModel * glm::vec4(lampPosition, 1.0)));
 
