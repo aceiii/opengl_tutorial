@@ -126,6 +126,8 @@ namespace {
     glm::vec3 lightDiffuse(1.0f, 0.35f, 0.65f);
     glm::vec3 lightAmbient(0.4f, 0.14f, 0.26f);
     glm::vec3 lightSpecular(1.0f, 1.0f, 1.0f);
+
+    bool forceQuit = false;
 }
 
 bool loadTexture(const std::string &name, GLuint textureId) {
@@ -157,8 +159,6 @@ bool loadTexture(const std::string &name, GLuint textureId) {
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-
-    std::cout << "keypress: " << key << ", " <<  scancode << '\n';
 
     if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
         hide_cursor = !hide_cursor;
@@ -369,25 +369,37 @@ void render() {
 void renderImGui() {
     //ImGui::ShowTestWindow();
 
-    ImGui::Begin("OpenGL");
-    ImGui::ColorEdit3("clear", (float*)&clearColor);
-    ImGui::Text("Material");
-    ImGui::PushID("material");
-    {
-        ImGui::ColorEdit3("ambient", (float*)&materialAmbient);
-        ImGui::ColorEdit3("diffuse", (float*)&materialDiffuse);
-        ImGui::ColorEdit3("specular", (float*)&materialSpecular);
-        ImGui::SliderFloat("shininess", &materialShininess, 4.0f, 128.0f);
+    ImGui::ShowDemoWindow();
+
+    if (ImGui::Begin("OpenGL", nullptr, ImGuiWindowFlags_MenuBar)) {
+        if (ImGui::BeginMenuBar()) {
+            if (ImGui::BeginMenu("File")) {
+                if (ImGui::MenuItem("Quit")) {
+                    forceQuit = true;
+                }
+
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenuBar();
+        }
+        if (ImGui::TreeNode("Global")) {
+            ImGui::ColorEdit3("clear", (float*)&clearColor);
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Material")) {
+            ImGui::ColorEdit3("ambient", (float*)&materialAmbient);
+            ImGui::ColorEdit3("diffuse", (float*)&materialDiffuse);
+            ImGui::ColorEdit3("specular", (float*)&materialSpecular);
+            ImGui::SliderFloat("shininess", &materialShininess, 4.0f, 128.0f);
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Light")) {
+            ImGui::ColorEdit3("ambient", (float*)&lightAmbient);
+            ImGui::ColorEdit3("diffuse", (float*)&lightDiffuse);
+            ImGui::ColorEdit3("specular", (float*)&lightSpecular);
+            ImGui::TreePop();
+        }
     }
-    ImGui::PopID();
-    ImGui::Text("Light");
-    ImGui::PushID("light");
-    {
-        ImGui::ColorEdit3("ambient", (float*)&lightAmbient);
-        ImGui::ColorEdit3("diffuse", (float*)&lightDiffuse);
-        ImGui::ColorEdit3("specular", (float*)&lightSpecular);
-    }
-    ImGui::PopID();
     ImGui::End();
 }
 
@@ -458,10 +470,10 @@ int main() {
     //ImGuiIO &io = ImGui::GetIO();
     //io.MouseDrawCursor = true;
 
-    while (true) {
+    while (!forceQuit) {
         if (glfwWindowShouldClose(window) == GLFW_TRUE) {
             std::cout << "GLFW: Closing window." << std::endl;
-            break;
+            forceQuit = true;
         }
 
         GLfloat currentFrame = glfwGetTime();
