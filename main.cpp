@@ -127,6 +127,11 @@ namespace {
     glm::vec3 lightAmbient(0.4f, 0.14f, 0.26f);
     glm::vec3 lightSpecular(1.0f, 1.0f, 1.0f);
 
+    float lightStrength = 1.0f;
+    float lightConstant = 1.0f;
+    float lightLinear = 0.09f;
+    float lightQuadratic = 0.032f;
+
     bool forceQuit = false;
     bool enableDiffuse = true;
     bool enableSpecular = true;
@@ -338,11 +343,17 @@ void render() {
     shader.setInt("material.emissive", 2);
     shader.setFloat("material.shininess", materialShininess);
 
+    shader.setBool("light.isDirectional", lampIsDirectional);
+	shader.setVec3("light.position", lampIsDirectional ? lampPosition : glm::vec3(lampModel * glm::vec4(lampPosition, 1.0)));
+
+    shader.setFloat("light.strength", lightStrength);
     shader.setVec3("light.ambient", lightAmbient);
     shader.setVec3("light.diffuse", lightDiffuse);
     shader.setVec3("light.specular", lightSpecular);
-    shader.setBool("light.isDirectional", lampIsDirectional);
-	shader.setVec3("light.position", lampIsDirectional ? lampPosition : glm::vec3(lampModel * glm::vec4(lampPosition, 1.0)));
+
+    shader.setFloat("light.constant", lightConstant);
+    shader.setFloat("light.linear", lightLinear);
+    shader.setFloat("light.quadratic", lightQuadratic);
 
     shader.setVec3("viewPos", camera.getPosition());
     shader.setMat4("projection", projection);
@@ -402,14 +413,20 @@ void renderImGui() {
         if (ImGui::TreeNode("Light")) {
             ImGui::Checkbox("directional", &lampIsDirectional);
             if (lampIsDirectional) {
-                ImGui::DragFloat3("direction", (float*)&lampPosition);
+                ImGui::DragFloat3("direction", (float*)&lampPosition, 0.1f);
             } else {
                 ImGui::Checkbox("animate", &animateLamp);
-                ImGui::DragFloat3("position", (float*)&lampPosition);
+                ImGui::DragFloat3("position", (float*)&lampPosition, 0.1f);
             }
             ImGui::ColorEdit3("ambient", (float*)&lightAmbient);
             ImGui::ColorEdit3("diffuse", (float*)&lightDiffuse);
             ImGui::ColorEdit3("specular", (float*)&lightSpecular);
+            ImGui::DragFloat("strength", &lightStrength, 0.01f, 0.0f, 4.0f);
+            if (!lampIsDirectional) {
+                ImGui::DragFloat("constant", &lightConstant, 0.0f, 1.0f, 1.0f);
+                ImGui::DragFloat("linear", &lightLinear, 0.01f, 0.0f, 1.0f);
+                ImGui::DragFloat("quadratic", &lightQuadratic, 0.01f, 0.0f, 1.0f);
+            }
             ImGui::TreePop();
         }
     }
