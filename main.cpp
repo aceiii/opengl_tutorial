@@ -128,6 +128,11 @@ namespace {
     glm::vec3 lightSpecular(1.0f, 1.0f, 1.0f);
 
     bool forceQuit = false;
+    bool enableDiffuse = true;
+    bool enableSpecular = true;
+    bool enableEmissive = false;
+    bool animateLamp = true;
+    bool lampIsDirectional = false;
 }
 
 bool loadTexture(const std::string &name, GLuint textureId) {
@@ -310,19 +315,21 @@ void render() {
     shader.use();
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture0);
+    glBindTexture(GL_TEXTURE_2D, enableDiffuse ? texture0 : 0);
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
+    glBindTexture(GL_TEXTURE_2D, enableSpecular ? texture1 : 0);
 
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
+    glBindTexture(GL_TEXTURE_2D, enableEmissive ? texture2 : 0);
 
     glm::mat4 projection = camera.getProjectionMatrix();
     glm::mat4 view = camera.getViewMatrix();
 
     glm::mat4 lampModel;
-    lampModel = glm::rotate(lampModel, GLfloat(timeValue) * glm::radians(32.0f), glm::vec3(-0.3, 1, 0));
+    if (!lampIsDirectional && animateLamp) {
+        lampModel = glm::rotate(lampModel, GLfloat(timeValue) * glm::radians(32.0f), glm::vec3(-0.3, 1, 0));
+    }
     lampModel = glm::translate(lampModel, lampPosition);
     lampModel = glm::scale(lampModel, glm::vec3(lampScale));
 
@@ -334,7 +341,8 @@ void render() {
     shader.setVec3("light.ambient", lightAmbient);
     shader.setVec3("light.diffuse", lightDiffuse);
     shader.setVec3("light.specular", lightSpecular);
-	shader.setVec3("light.position", glm::vec3(lampModel * glm::vec4(lampPosition, 1.0)));
+    shader.setBool("light.isDirectional", lampIsDirectional);
+	shader.setVec3("light.position", lampIsDirectional ? lampPosition : glm::vec3(lampModel * glm::vec4(lampPosition, 1.0)));
 
     shader.setVec3("viewPos", camera.getPosition());
     shader.setMat4("projection", projection);
@@ -385,13 +393,20 @@ void renderImGui() {
             ImGui::TreePop();
         }
         if (ImGui::TreeNode("Material")) {
-            ImGui::ColorEdit3("ambient", (float*)&materialAmbient);
-            ImGui::ColorEdit3("diffuse", (float*)&materialDiffuse);
-            ImGui::ColorEdit3("specular", (float*)&materialSpecular);
+            ImGui::Checkbox("enable diffuse", &enableDiffuse);
+            ImGui::Checkbox("enable specular", &enableSpecular);
+            ImGui::Checkbox("enable emissive", &enableEmissive);
             ImGui::SliderFloat("shininess", &materialShininess, 4.0f, 128.0f);
             ImGui::TreePop();
         }
         if (ImGui::TreeNode("Light")) {
+            ImGui::Checkbox("directional", &lampIsDirectional);
+            if (lampIsDirectional) {
+                ImGui::DragFloat3("direction", (float*)&lampPosition);
+            } else {
+                ImGui::Checkbox("animate", &animateLamp);
+                ImGui::DragFloat3("position", (float*)&lampPosition);
+            }
             ImGui::ColorEdit3("ambient", (float*)&lightAmbient);
             ImGui::ColorEdit3("diffuse", (float*)&lightDiffuse);
             ImGui::ColorEdit3("specular", (float*)&lightSpecular);

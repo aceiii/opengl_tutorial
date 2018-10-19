@@ -8,6 +8,7 @@ struct Material {
 };
 
 struct Light {
+    bool isDirectional;
     vec3 position;
     vec3 ambient;
     vec3 diffuse;
@@ -30,7 +31,7 @@ uniform Light light;
 void main() {
 
     vec3 normal = normalize(Normal);
-    vec3 lightDir = normalize(light.position - FragPos);
+    vec3 lightDir = light.isDirectional ? normalize(-light.position) : normalize(light.position - FragPos);
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
 
