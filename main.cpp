@@ -101,7 +101,7 @@ namespace {
     GLfloat lastY = 600.0f / 2.0f;
 
     GLuint vboHandle, vaoHandle, eboHandle, lightVaoHandle;
-    GLuint texture0, texture1;
+    GLuint texture0, texture1, texture2;
 
     Shader shader;
     Shader lampShader;
@@ -264,12 +264,17 @@ bool setupOpengl() {
 
     glGenTextures(1, &texture0);
     glGenTextures(1, &texture1);
+    glGenTextures(1, &texture2);
 
     if (!loadTexture("resources/texture/container2.png", texture0)) {
         return false;
     }
 
     if (!loadTexture("resources/texture/container2_specular.png", texture1)) {
+        return false;
+    }
+
+    if (!loadTexture("resources/texture/matrix.jpg", texture2)) {
         return false;
     }
 
@@ -310,16 +315,20 @@ void render() {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture1);
 
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
     glm::mat4 projection = camera.getProjectionMatrix();
     glm::mat4 view = camera.getViewMatrix();
 
     glm::mat4 lampModel;
-    //lampModel = glm::rotate(lampModel, GLfloat(timeValue) * glm::radians(32.0f), glm::vec3(-0.3, 1, 0));
+    lampModel = glm::rotate(lampModel, GLfloat(timeValue) * glm::radians(32.0f), glm::vec3(-0.3, 1, 0));
     lampModel = glm::translate(lampModel, lampPosition);
     lampModel = glm::scale(lampModel, glm::vec3(lampScale));
 
     shader.setInt("material.diffuse", 0);
     shader.setInt("material.specular", 1);
+    shader.setInt("material.emissive", 2);
     shader.setFloat("material.shininess", materialShininess);
 
     shader.setVec3("light.ambient", lightAmbient);
