@@ -269,7 +269,7 @@ bool setupOpengl() {
         return false;
     }
 
-    if (!loadTexture("resources/texture/awesomeface.png", texture1)) {
+    if (!loadTexture("resources/texture/container2_specular.png", texture1)) {
         return false;
     }
 
@@ -314,12 +314,12 @@ void render() {
     glm::mat4 view = camera.getViewMatrix();
 
     glm::mat4 lampModel;
-    lampModel = glm::rotate(lampModel, GLfloat(timeValue) * glm::radians(32.0f), glm::vec3(-0.3, 1, 0));
+    //lampModel = glm::rotate(lampModel, GLfloat(timeValue) * glm::radians(32.0f), glm::vec3(-0.3, 1, 0));
     lampModel = glm::translate(lampModel, lampPosition);
     lampModel = glm::scale(lampModel, glm::vec3(lampScale));
 
     shader.setInt("material.diffuse", 0);
-    shader.setVec3("material.specular", materialSpecular);
+    shader.setInt("material.specular", 1);
     shader.setFloat("material.shininess", materialShininess);
 
     shader.setVec3("light.ambient", lightAmbient);
