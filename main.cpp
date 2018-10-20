@@ -31,7 +31,9 @@ struct Light {
         SPOT,
     };
 
-    Type type = POINT;
+    bool enable {true};
+
+    Type type {POINT};
     glm::vec3 position {0.0f, 0.0f, 0.0f};
     glm::vec3 direction {0.0f, 0.0f, -1.0f};
     glm::vec3 ambient {0.164f, 0.24f, 0.4f};
@@ -351,6 +353,7 @@ void render() {
     for (int index = 0; index < (int)lights.size(); index += 1) {
         const Light &light = lights[index];
 
+        shader.setBool(fmt::format("lights[{}].enable", index), light.enable);
         shader.setInt(fmt::format("lights[{}].type", index), light.type);
         shader.setVec3(fmt::format("lights[{}].position", index), light.position);
         shader.setVec3(fmt::format("lights[{}].direction", index), light.direction);
@@ -442,7 +445,7 @@ void renderImGui() {
             Light &light = lights[i];
 
             if (ImGui::TreeNode(fmt::format("Light[{}]", i).c_str())) {
-
+                ImGui::Checkbox("enable", &light.enable);
                 ImGui::RadioButton("type point", (int*)&light.type, 0);
                 ImGui::RadioButton("type directional", (int*)&light.type, 1);
                 ImGui::RadioButton("type spot", (int*)&light.type, 2);

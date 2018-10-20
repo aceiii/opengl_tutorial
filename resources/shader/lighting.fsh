@@ -10,6 +10,8 @@ struct Material {
 };
 
 struct Light {
+    bool enable;
+
     int type;
     vec3 position;
     vec3 direction;
@@ -39,6 +41,10 @@ uniform Material material;
 uniform Light[MAX_LIGHTS] lights;
 
 vec3 calculateLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir) {
+    if (!light.enable) {
+        return vec3(0.0);
+    }
+
     vec3 lightDir;
     float attenuation = 1.0;
     float intensity = 1.0;
