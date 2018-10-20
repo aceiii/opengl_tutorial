@@ -131,6 +131,7 @@ namespace {
     float lightLinear = 0.09f;
     float lightQuadratic = 0.032f;
     float lightCutoff = glm::cos(glm::radians(12.5f));
+    float lightOuterCutoff = glm::cos(glm::radians(17.5f));
 
     bool forceQuit = false;
     bool enableDiffuse = true;
@@ -346,6 +347,7 @@ void render() {
 	shader.setVec3("light.position", glm::vec3(lampModel * glm::vec4(lightPosition, 1.0)));
     shader.setVec3("light.direction", lightDirection);
     shader.setFloat("light.cutOff", lightCutoff);
+    shader.setFloat("light.outerCutOff", lightOuterCutoff);
 
     shader.setFloat("light.strength", lightStrength);
     shader.setVec3("light.ambient", lightAmbient);
@@ -434,7 +436,9 @@ void renderImGui() {
             ImGui::DragFloat("linear", &lightLinear, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("quadratic", &lightQuadratic, 0.01f, 0.0f, 1.0f);
             if (lightType == 2) {
-                ImGui::DragFloat("cutoff", &lightCutoff, 0.01f, 0.0f, 16.0f);
+                ImGui::DragFloat("cutoff", &lightCutoff, 0.001f, 0.44f, 1.0f);
+                ImGui::DragFloat("outer cutoff", &lightOuterCutoff, 0.001f, 0.44f, 1.0f);
+                lightOuterCutoff = std::min(lightOuterCutoff, lightCutoff);
             }
             ImGui::TreePop();
         }
