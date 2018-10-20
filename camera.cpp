@@ -76,6 +76,10 @@ glm::vec3 Camera::getPosition() const {
     return _pos;
 }
 
+glm::vec3 Camera::getFront() const {
+    return _front;
+}
+
 void Camera::rebuildViewMatrix() {
     _view = glm::lookAt(_pos, _pos + _front, _up);
 }

@@ -22,6 +22,7 @@ public:
     glm::mat4 getProjectionMatrix() const;
     glm::mat4 getViewMatrix() const;
     glm::vec3 getPosition() const;
+    glm::vec3 getFront() const;
 
 private:
     void rebuildViewMatrix();
