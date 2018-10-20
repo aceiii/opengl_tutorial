@@ -4,6 +4,9 @@
 #include <sstream>
 #include <iostream>
 
+#include "fmt/core.h"
+#include "fmt/ostream.h"
+
 Shader::Shader():program(0) {
 }
 
@@ -34,7 +37,7 @@ bool Shader::init(const char *vertexPath, const char *fragmentPath) {
 GLuint Shader::loadShaderFile(GLenum shaderType, const std::string &filename) {
     std::ifstream f(filename);
     if (!f.is_open()) {
-        std::cerr << "Shader: Unable to open file: " << filename << std::endl;
+        fmt::print(std::cerr, "Shader: Unable to open file: {}\n", filename);
         return 0;
     }
 
@@ -51,7 +54,7 @@ GLuint Shader::loadShaderFile(GLenum shaderType, const std::string &filename) {
     if (!success) {
         GLchar infoLog[512];
         glGetShaderInfoLog(handle, 512, NULL, infoLog);
-        std::cerr << "Shader: Shader compilation failed: " << infoLog << std::endl;
+        fmt::print(std::cerr, "Shader: Shader compilation failed: {}\n", infoLog);
         return 0;
     }
 
@@ -69,7 +72,7 @@ GLuint Shader::createShaderProgram(GLuint vertexShaderHandle, GLuint fragmentSha
     if (!success) {
         GLchar infoLog[512];
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cerr << "Shader: Shader program link failed: " << infoLog << std::endl;
+        fmt::print(std::cerr, "Shader: Shader program link failed: {}\n", infoLog);
         return 0;
     }
 

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <complex>
 
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
@@ -16,6 +15,9 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+
+#include "fmt/core.h"
+#include "fmt/ostream.h"
 
 #include "shader.h"
 #include "camera.h"
@@ -144,7 +146,7 @@ bool loadTexture(const std::string &name, GLuint textureId) {
     int width, height;
     unsigned char *image = SOIL_load_image(name.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
     if (!image) {
-        std::cerr << "loadTexture: Unable to load file '" << name << "'" << std::endl;
+        fmt::print(std::cerr, "loadTexture: Unable to load file '{}'\n", name);
         return false;
     }
 
@@ -152,7 +154,7 @@ bool loadTexture(const std::string &name, GLuint textureId) {
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
         if (error == GL_INVALID_VALUE) {
-            std::cerr << "loadTexture: textureId is invalid" << std::endl;
+            fmt::print(std::cerr, "loadTexture: textureId is invalid\n");
         }
 
         SOIL_free_image_data(image);
@@ -268,7 +270,7 @@ bool setupOpengl() {
     glBindVertexArray(0);
 
     if (!shader.init("resources/shader/lighting.vsh", "resources/shader/lighting.fsh")) {
-        std::cerr << "Failed to initialize default shaders." << std::endl;
+        fmt::print(std::cerr, "Failed to initialize default shaders.\n");
         return false;
     }
 
@@ -299,7 +301,7 @@ bool setupOpengl() {
     glBindVertexArray(0);
 
     if (!lampShader.init("resources/shader/lamp.vsh", "resources/shader/lamp.fsh")) {
-        std::cerr << "Failed to initialize lamp shaders." << std::endl;
+        fmt::print(std::cerr, "Failed to initialize lamp shaders.\n");
         return false;
     }
 
@@ -454,7 +456,7 @@ int main() {
 
     int major, minor, revision;
     glfwGetVersion(&major, &minor, &revision);
-    std::cout << "GLFW: Version: " << major << "." << minor << "." << revision << std::endl;
+    fmt::print("GLFW: Version: {}.{}.{}\n", major, minor, revision);
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -479,20 +481,20 @@ int main() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize OpenGL context" << std::endl;
+        fmt::print(std::cerr, "Failed to initialize OpenGL context\n");
         return -1;
     }
 
     const GLubyte* gl_version = glGetString(GL_VERSION);
-    std::cout << "OpenGL: Version: " << gl_version << std::endl;
+    fmt::print("OpenGL: Version: {}\n", gl_version);
 
-    GLint nrAttibutes;
-    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttibutes);
-    std::cout << "OpenGL: Maximum number of attributes: " << nrAttibutes << std::endl;
+    GLint nrAttributes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+    fmt::print("OpenGL: Maximum number of attributes: {}\n", nrAttributes);
 
     int frameBufferWidth, frameBufferHeight;
     glfwGetFramebufferSize(window, &frameBufferWidth, &frameBufferHeight);
-    std::cout << "GLFW: Framebuffer size: (" << frameBufferWidth << ", " << frameBufferHeight << ")" << std::endl;
+    fmt::print("GLFW: Framebuffer size: ({}, {})\n", frameBufferWidth, frameBufferHeight);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -515,7 +517,7 @@ int main() {
 
     while (!forceQuit) {
         if (glfwWindowShouldClose(window) == GLFW_TRUE) {
-            std::cout << "GLFW: Closing window." << std::endl;
+            fmt::print("GLFW: Closing window.\n");
             forceQuit = true;
         }
 
