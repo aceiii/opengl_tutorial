@@ -1,5 +1,7 @@
 #version 330 core
 
+#define MAX_LIGHTS 8
+
 struct Material {
     sampler2D diffuse;
     sampler2D specular;
@@ -31,32 +33,31 @@ in vec2 TexCoords;
 
 out vec4 color;
 
+uniform int numLights;
 uniform vec3 viewPos;
 uniform Material material;
-uniform Light light;
+uniform Light[MAX_LIGHTS] lights;
 
-void main() {
+vec3 calculateLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir) {
     vec3 lightDir;
     float attenuation = 1.0;
     float intensity = 1.0;
 
     if (light.type == 0) {
-        float distance = length(light.position - FragPos);
+        float distance = length(light.position - fragPos);
         attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
-        lightDir = normalize(light.position - FragPos);
+        lightDir = normalize(light.position - fragPos);
     } else if (light.type == 1) {
         lightDir = normalize(-light.direction);
     } else {
-        float distance = length(light.position - FragPos);
+        float distance = length(light.position - fragPos);
         attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
-        lightDir = normalize(light.position - FragPos);
+        lightDir = normalize(light.position - fragPos);
         float theta = dot(lightDir, normalize(-light.direction));
         float epsilon = light.cutOff - light.outerCutOff;
         intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
     }
 
-    vec3 normal = normalize(Normal);
-    vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
 
     float diff = max(dot(normal, lightDir), 0.0);
@@ -71,7 +72,17 @@ void main() {
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
 
-    vec3 result = ambient + diffuse + specular + emissive;
+    return ambient + diffuse + specular + emissive;
+}
+
+void main() {
+    vec3 normal = normalize(Normal);
+    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 result = vec3(0.0);
+
+    for (int i = 0; i < numLights; i += 1) {
+        result += calculateLight(lights[i], normal, FragPos, viewDir);
+    }
 
     color = vec4(result, 1.0);
 }

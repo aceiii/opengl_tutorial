@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <array>
 
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
@@ -21,6 +22,29 @@
 
 #include "shader.h"
 #include "camera.h"
+
+struct Light {
+
+    enum Type {
+        POINT = 0,
+        DIRECTIONAL,
+        SPOT,
+    };
+
+    Type type = POINT;
+    glm::vec3 position {0.0f, 0.0f, 0.0f};
+    glm::vec3 direction {0.0f, 0.0f, -1.0f};
+    glm::vec3 ambient {0.164f, 0.24f, 0.4f};
+    glm::vec3 diffuse {1.0f, 1.0f, 1.0f};
+    glm::vec3 specular {0.5f, 0.7f, 0.9f};
+
+    float strength {1.0f};
+    float constant {1.0f};
+    float linear {0.09f};
+    float quadratic {0.032f};
+    float cutoff {glm::cos(glm::radians(12.5f))};
+    float outerCutoff {glm::cos(glm::radians(17.5f))};
+};
 
 namespace {
     GLFWwindow *window = nullptr;
@@ -100,7 +124,7 @@ namespace {
     GLfloat lastX = 800.0f / 2.0f;
     GLfloat lastY = 600.0f / 2.0f;
 
-    GLuint vboHandle, vaoHandle, eboHandle, lightVaoHandle;
+    GLuint vboHandle, vaoHandle, lightVaoHandle;
     GLuint texture0, texture1, texture2;
 
     Shader shader;
@@ -121,25 +145,16 @@ namespace {
     float materialShininess = 32.0f;
 
     GLfloat lampScale = 0.2f;
-    int lightType = 0;
-    glm::vec3 lightPosition(3.0f, 2.3f, -1.4f);
-    glm::vec3 lightDirection(0.0f, -1.0f, 0.0f);
-    glm::vec3 lightAmbient(0.164f, 0.240f, 0.407f);
-    glm::vec3 lightDiffuse(1.0f, 1.0f, 1.0f);
-    glm::vec3 lightSpecular(0.499f, 0.767f, 0.923f);
-
-    float lightStrength = 2.0f;
-    float lightConstant = 1.0f;
-    float lightLinear = 0.09f;
-    float lightQuadratic = 0.032f;
-    float lightCutoff = glm::cos(glm::radians(12.5f));
-    float lightOuterCutoff = glm::cos(glm::radians(17.5f));
 
     bool forceQuit = false;
     bool enableDiffuse = true;
     bool enableSpecular = true;
     bool enableEmissive = false;
     bool animateLamp = true;
+
+    const int MAX_LIGHTS = 8;
+    std::array<Light, MAX_LIGHTS> lights;
+    int num_lights = 1;
 }
 
 bool loadTexture(const std::string &name, GLuint textureId) {
@@ -333,32 +348,30 @@ void render() {
     glm::mat4 projection = camera.getProjectionMatrix();
     glm::mat4 view = camera.getViewMatrix();
 
-    glm::mat4 lampModel;
-    if (lightType == 0 && animateLamp) {
-        lampModel = glm::rotate(lampModel, GLfloat(timeValue) * glm::radians(32.0f), glm::vec3(-0.3, 1, 0));
-    }
-    lampModel = glm::translate(lampModel, lightPosition);
-    lampModel = glm::scale(lampModel, glm::vec3(lampScale));
+    for (int index = 0; index < (int)lights.size(); index += 1) {
+        const Light &light = lights[index];
 
+        shader.setInt(fmt::format("lights[{}].type", index), light.type);
+        shader.setVec3(fmt::format("lights[{}].position", index), light.position);
+        shader.setVec3(fmt::format("lights[{}].direction", index), light.direction);
+        shader.setFloat(fmt::format("lights[{}].cutOff", index), light.cutoff);
+        shader.setFloat(fmt::format("lights[{}].outerCutOff", index), light.outerCutoff);
+
+        shader.setFloat(fmt::format("lights[{}].strength", index), light.strength);
+        shader.setVec3(fmt::format("lights[{}].ambient", index), light.ambient);
+        shader.setVec3(fmt::format("lights[{}].diffuse", index), light.diffuse);
+        shader.setVec3(fmt::format("lights[{}].specular", index), light.specular);
+
+        shader.setFloat(fmt::format("lights[{}].constant", index), light.constant);
+        shader.setFloat(fmt::format("lights[{}].linear", index), light.linear);
+        shader.setFloat(fmt::format("lights[{}].quadratic", index), light.quadratic);
+    }
+
+    shader.setInt("numLights", num_lights);
     shader.setInt("material.diffuse", 0);
     shader.setInt("material.specular", 1);
     shader.setInt("material.emissive", 2);
     shader.setFloat("material.shininess", materialShininess);
-
-    shader.setInt("light.type", lightType);
-	shader.setVec3("light.position", glm::vec3(lampModel * glm::vec4(lightPosition, 1.0)));
-    shader.setVec3("light.direction", lightDirection);
-    shader.setFloat("light.cutOff", lightCutoff);
-    shader.setFloat("light.outerCutOff", lightOuterCutoff);
-
-    shader.setFloat("light.strength", lightStrength);
-    shader.setVec3("light.ambient", lightAmbient);
-    shader.setVec3("light.diffuse", lightDiffuse);
-    shader.setVec3("light.specular", lightSpecular);
-
-    shader.setFloat("light.constant", lightConstant);
-    shader.setFloat("light.linear", lightLinear);
-    shader.setFloat("light.quadratic", lightQuadratic);
 
     shader.setVec3("viewPos", camera.getPosition());
     shader.setMat4("projection", projection);
@@ -379,15 +392,25 @@ void render() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
-    // Draw lamp
+    // Draw light sources
 
     lampShader.use();
     lampShader.setMat4("projection", projection);
     lampShader.setMat4("view", view);
-    lampShader.setMat4("model", lampModel);
 
-    glBindVertexArray(lightVaoHandle);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    for (int i = 0; i < num_lights; i += 1) {
+        const Light &light = lights[i];
+
+        glm::mat4 lampModel;
+        lampModel = glm::translate(lampModel, light.position);
+        lampModel = glm::scale(lampModel, glm::vec3(lampScale));
+
+        lampShader.setMat4("model", lampModel);
+        lampShader.setVec3("lightColor", light.diffuse);
+
+        glBindVertexArray(lightVaoHandle);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
 
     glBindVertexArray(0);
 }
@@ -415,34 +438,42 @@ void renderImGui() {
             ImGui::SliderFloat("shininess", &materialShininess, 4.0f, 128.0f);
             ImGui::TreePop();
         }
-        if (ImGui::TreeNode("Light")) {
-            //ImGui::Checkbox("directional", &lightIsDirectional);
+        for (int i = 0; i < num_lights; i += 1) {
+            Light &light = lights[i];
 
-            ImGui::RadioButton("type point", &lightType, 0);
-            ImGui::RadioButton("type directional", &lightType, 1);
-            ImGui::RadioButton("type spot", &lightType, 2);
-            if (lightType == 0) {
-                ImGui::Checkbox("animate", &animateLamp);
-                ImGui::DragFloat3("position", (float*)&lightPosition, 0.1f);
-            } else if (lightType == 1) {
-                ImGui::DragFloat3("direction", (float*)&lightDirection, 0.1f);
-            } else if (lightType == 2) {
-                ImGui::DragFloat3("position", (float*)&lightPosition, 0.1f);
-                ImGui::DragFloat3("direction", (float*)&lightDirection, 0.1f);
+            if (ImGui::TreeNode(fmt::format("Light[{}]", i).c_str())) {
+
+                ImGui::RadioButton("type point", (int*)&light.type, 0);
+                ImGui::RadioButton("type directional", (int*)&light.type, 1);
+                ImGui::RadioButton("type spot", (int*)&light.type, 2);
+                if (light.type == Light::POINT) {
+                    ImGui::Checkbox("animate", &animateLamp);
+                    ImGui::DragFloat3("position", (float*)&light.position, 0.1f);
+                } else if (light.type == Light::DIRECTIONAL) {
+                    ImGui::DragFloat3("direction", (float*)&light.direction, 0.1f);
+                } else if (light.type == Light::SPOT) {
+                    ImGui::DragFloat3("position", (float*)&light.position, 0.1f);
+                    ImGui::DragFloat3("direction", (float*)&light.direction, 0.1f);
+                }
+                ImGui::ColorEdit3("ambient", (float*)&light.ambient);
+                ImGui::ColorEdit3("diffuse", (float*)&light.diffuse);
+                ImGui::ColorEdit3("specular", (float*)&light.specular);
+                ImGui::DragFloat("strength", &light.strength, 0.01f, 0.0f, 32.0f);
+                ImGui::DragFloat("constant", &light.constant, 0.0f, 1.0f, 1.0f);
+                ImGui::DragFloat("linear", &light.linear, 0.01f, 0.0f, 1.0f);
+                ImGui::DragFloat("quadratic", &light.quadratic, 0.01f, 0.0f, 1.0f);
+                if (light.type == Light::SPOT) {
+                    ImGui::DragFloat("cutoff", &light.cutoff, 0.001f, 0.44f, 1.0f);
+                    ImGui::DragFloat("outer cutoff", &light.outerCutoff, 0.001f, 0.44f, 1.0f);
+                    light.outerCutoff = std::min(light.outerCutoff, light.cutoff);
+                }
+                ImGui::TreePop();
             }
-            ImGui::ColorEdit3("ambient", (float*)&lightAmbient);
-            ImGui::ColorEdit3("diffuse", (float*)&lightDiffuse);
-            ImGui::ColorEdit3("specular", (float*)&lightSpecular);
-            ImGui::DragFloat("strength", &lightStrength, 0.01f, 0.0f, 32.0f);
-            ImGui::DragFloat("constant", &lightConstant, 0.0f, 1.0f, 1.0f);
-            ImGui::DragFloat("linear", &lightLinear, 0.01f, 0.0f, 1.0f);
-            ImGui::DragFloat("quadratic", &lightQuadratic, 0.01f, 0.0f, 1.0f);
-            if (lightType == 2) {
-                ImGui::DragFloat("cutoff", &lightCutoff, 0.001f, 0.44f, 1.0f);
-                ImGui::DragFloat("outer cutoff", &lightOuterCutoff, 0.001f, 0.44f, 1.0f);
-                lightOuterCutoff = std::min(lightOuterCutoff, lightCutoff);
+        }
+        if (num_lights < MAX_LIGHTS) {
+            if (ImGui::Button("Add Lights")) {
+                num_lights += 1;
             }
-            ImGui::TreePop();
         }
     }
     ImGui::End();
