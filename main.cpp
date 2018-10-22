@@ -8,8 +8,6 @@
 #include <GLFW/glfw3.h>
 #include "glad/glad.h"
 
-#include <SOIL.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -26,6 +24,7 @@
 #include "light.h"
 #include "model.h"
 #include "mesh.h"
+#include "texture.h"
 
 namespace {
     GLFWwindow *window = nullptr;
@@ -147,6 +146,7 @@ namespace {
     float outlineSize = 1.0f;
 }
 
+/*
 bool loadTexture(const std::string &name, GLuint textureId) {
     int width, height;
     unsigned char *image = SOIL_load_image(name.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
@@ -174,6 +174,7 @@ bool loadTexture(const std::string &name, GLuint textureId) {
 
     return true;
 }
+*/
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
 
@@ -283,15 +284,15 @@ bool setupOpengl() {
     glGenTextures(1, &texture1);
     glGenTextures(1, &texture2);
 
-    if (!loadTexture("resources/texture/container2.png", texture0)) {
+    if (!textureFromFile("resources/texture/container2.png", texture0)) {
         return false;
     }
 
-    if (!loadTexture("resources/texture/container2_specular.png", texture1)) {
+    if (!textureFromFile("resources/texture/container2_specular.png", texture1)) {
         return false;
     }
 
-    if (!loadTexture("resources/texture/matrix.jpg", texture2)) {
+    if (!textureFromFile("resources/texture/matrix.jpg", texture2)) {
         return false;
     }
 

@@ -5,51 +5,10 @@
 #include "glad/glad.h"
 #include "fmt/core.h"
 #include "fmt/ostream.h"
-#include "stb_image.h"
+#include "texture.h"
 
 namespace {
     std::vector<Texture> textures_loaded;
-}
-
-unsigned int textureFromFile(const std::string &path, const std::string &directory) {
-    const std::string filename = fmt::format("{}/{}", directory, path);
-
-    fmt::print("Loading texture from file: '{}'\n", filename);
-
-    unsigned int textureId;
-    glGenTextures(1, &textureId);
-
-    int width, height, num_components;
-    unsigned char *data = stbi_load(filename.c_str(), &width, &height, &num_components, 0);
-    if (data) {
-        GLenum format;
-        if (num_components == 1) {
-            format = GL_RED;
-        } else if (num_components == 2) {
-            format = GL_RG;
-        } else if (num_components == 3) {
-            format = GL_RGB;
-        } else if (num_components == 4) {
-            format = GL_RGBA;
-        } else {
-            fmt::print(std::cerr, "Unknown format\n");
-        }
-
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        stbi_image_free(data);
-    } else {
-        fmt::print(std::cerr, "Texture failed to load at path: {}\n", path);
-        stbi_image_free(data); }
-
-    return textureId;
 }
 
 Model::Model(const std::string &path) {
@@ -174,8 +133,14 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial *material, aiTexture
         }
 
         if (!skip) {
+            unsigned int textureId;
+            if (!textureFromFile(string.C_Str(), _directory, textureId)) {
+                fmt::print(std::cerr, "Failed to load texture: {}/{}\n", _directory, string.C_Str());
+            }
+
+
             Texture texture;
-            texture.id = textureFromFile(string.C_Str(), _directory);
+            texture.id = textureId;
             texture.type = typeName;
             texture.path = string.C_Str();
 
