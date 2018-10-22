@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <array>
+#include <memory>
 
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
@@ -23,6 +24,8 @@
 #include "shader.h"
 #include "camera.h"
 #include "light.h"
+#include "model.h"
+#include "mesh.h"
 
 namespace {
     GLFWwindow *window = nullptr;
@@ -133,6 +136,9 @@ namespace {
     const int MAX_LIGHTS = 8;
     std::array<Light, MAX_LIGHTS> lights;
     int num_lights = 1;
+
+    Shader modelShader;
+    std::unique_ptr<Model> model;
 }
 
 bool loadTexture(const std::string &name, GLuint textureId) {
@@ -298,6 +304,19 @@ bool setupOpengl() {
         return false;
     }
 
+    /// Initialize mesh =======================================================
+    model = std::make_unique<Model>("resources/model/nanosuit/nanosuit.obj");
+    //model = std::make_unique<Model>("resources/model/Homer_simpson/Homer_Simpson.blend");
+    if (!model) {
+        fmt::print(std::cerr, "Failed to initialize nanosuit model.\n");
+        return false;
+    }
+
+    if (!modelShader.init("resources/shader/model.vsh", "resources/shader/model.fsh")) {
+        fmt::print(std::cerr, "Failed to initialize default shaders.\n");
+        return false;
+    }
+
     return true;
 }
 
@@ -307,8 +326,12 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     GLfloat timeValue = glfwGetTime();
+
+    glm::mat4 projection = camera.getProjectionMatrix();
+    glm::mat4 view = camera.getViewMatrix();
 
     // Draw container cubes
 
@@ -322,9 +345,6 @@ void render() {
 
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, enableEmissive ? texture2 : 0);
-
-    glm::mat4 projection = camera.getProjectionMatrix();
-    glm::mat4 view = camera.getViewMatrix();
 
     for (int index = 0; index < (int)lights.size(); index += 1) {
         const Light &light = lights[index];
@@ -356,9 +376,7 @@ void render() {
     shader.setMat4("projection", projection);
     shader.setMat4("view", view);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindVertexArray(vaoHandle);
-
     for (GLuint i = 0; i < 10; i += 1) {
         glm::mat4 model;
         model = glm::translate(model, cubePositions[i]);
@@ -370,6 +388,19 @@ void render() {
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
+
+    // draw mesh
+    glm::mat4 matModel;
+    matModel = glm::translate(matModel, glm::vec3(0.0f, -1.75f, 2.5f));
+    matModel = glm::scale(matModel, glm::vec3(0.15f));
+
+    modelShader.use();
+    modelShader.setMat4("projection", projection);
+    modelShader.setMat4("view", view);
+
+    modelShader.setMat4("model", matModel);
+
+    model->draw(shader);
 
     // Draw light sources
 
@@ -519,8 +550,8 @@ int main() {
         return -1;
     }
 
-    camera.init(WIDTH, HEIGHT, 45.0F, glm::vec3(0.0f, 0.0f, 3.0f));
-
+    camera.init(WIDTH, HEIGHT, 45.0F, glm::vec3(-1.75f, 0.0f, 5.0f));
+    camera.moveTarget(15.0, -5.0);
 
     //ImGuiIO &io = ImGui::GetIO();
     //io.MouseDrawCursor = true;
