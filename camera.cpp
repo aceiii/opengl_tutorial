@@ -64,20 +64,25 @@ void Camera::setFieldOfView(float fov) {
     rebuildProjectionMatrix();
 }
 
-glm::mat4 Camera::getProjectionMatrix() const {
+const glm::mat4& Camera::getProjectionMatrix() const {
     return _proj;
 }
 
-glm::mat4 Camera::getViewMatrix() const {
+const glm::mat4& Camera::getViewMatrix() const {
     return _view;
 }
 
-glm::vec3 Camera::getPosition() const {
+const glm::vec3& Camera::getPosition() const {
     return _pos;
 }
 
-glm::vec3 Camera::getFront() const {
+const glm::vec3& Camera::getFront() const {
     return _front;
+}
+
+void Camera::setPosition(const glm::vec3 &position) {
+    _pos = position;
+    rebuildViewMatrix();
 }
 
 void Camera::rebuildViewMatrix() {

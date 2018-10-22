@@ -19,10 +19,13 @@ public:
     void moveTarget(float xoffset, float yoffset);
     float getFieldOfView() const;
     void setFieldOfView(float fov);
-    glm::mat4 getProjectionMatrix() const;
-    glm::mat4 getViewMatrix() const;
-    glm::vec3 getPosition() const;
-    glm::vec3 getFront() const;
+
+    const glm::mat4& getProjectionMatrix() const;
+    const glm::mat4& getViewMatrix() const;
+    const glm::vec3& getPosition() const;
+    const glm::vec3& getFront() const;
+
+    void setPosition(const glm::vec3& position);
 
 private:
     void rebuildViewMatrix();

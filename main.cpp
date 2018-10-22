@@ -133,9 +133,7 @@ namespace {
     bool enableEmissive = false;
     bool animateLamp = true;
 
-    const int MAX_LIGHTS = 8;
-    std::array<Light, MAX_LIGHTS> lights;
-    int num_lights = 1;
+    Lights lights {1};
 
     Shader modelShader;
     std::unique_ptr<Model> model;
@@ -346,27 +344,8 @@ void render() {
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, enableEmissive ? texture2 : 0);
 
-    for (int index = 0; index < (int)lights.size(); index += 1) {
-        const Light &light = lights[index];
+    lights.set(shader);
 
-        shader.setBool(fmt::format("lights[{}].enable", index), light.enable);
-        shader.setInt(fmt::format("lights[{}].type", index), light.type);
-        shader.setVec3(fmt::format("lights[{}].position", index), light.position);
-        shader.setVec3(fmt::format("lights[{}].direction", index), light.direction);
-        shader.setFloat(fmt::format("lights[{}].cutOff", index), light.cutoff);
-        shader.setFloat(fmt::format("lights[{}].outerCutOff", index), light.outerCutoff);
-
-        shader.setFloat(fmt::format("lights[{}].strength", index), light.strength);
-        shader.setVec3(fmt::format("lights[{}].ambient", index), light.ambient);
-        shader.setVec3(fmt::format("lights[{}].diffuse", index), light.diffuse);
-        shader.setVec3(fmt::format("lights[{}].specular", index), light.specular);
-
-        shader.setFloat(fmt::format("lights[{}].constant", index), light.constant);
-        shader.setFloat(fmt::format("lights[{}].linear", index), light.linear);
-        shader.setFloat(fmt::format("lights[{}].quadratic", index), light.quadratic);
-    }
-
-    shader.setInt("numLights", num_lights);
     shader.setInt("material.diffuse", 0);
     shader.setInt("material.specular", 1);
     shader.setInt("material.emissive", 2);
@@ -396,27 +375,7 @@ void render() {
     matModel = glm::translate(matModel, glm::vec3(0.0f, -1.75f, 2.5f));
     matModel = glm::scale(matModel, glm::vec3(0.15f));
 
-    for (int index = 0; index < (int)lights.size(); index += 1) {
-        const Light &light = lights[index];
-
-        modelShader.setBool(fmt::format("lights[{}].enable", index), light.enable);
-        modelShader.setInt(fmt::format("lights[{}].type", index), light.type);
-        modelShader.setVec3(fmt::format("lights[{}].position", index), light.position);
-        modelShader.setVec3(fmt::format("lights[{}].direction", index), light.direction);
-        modelShader.setFloat(fmt::format("lights[{}].cutOff", index), light.cutoff);
-        modelShader.setFloat(fmt::format("lights[{}].outerCutOff", index), light.outerCutoff);
-
-        modelShader.setFloat(fmt::format("lights[{}].strength", index), light.strength);
-        modelShader.setVec3(fmt::format("lights[{}].ambient", index), light.ambient);
-        modelShader.setVec3(fmt::format("lights[{}].diffuse", index), light.diffuse);
-        modelShader.setVec3(fmt::format("lights[{}].specular", index), light.specular);
-
-        modelShader.setFloat(fmt::format("lights[{}].constant", index), light.constant);
-        modelShader.setFloat(fmt::format("lights[{}].linear", index), light.linear);
-        modelShader.setFloat(fmt::format("lights[{}].quadratic", index), light.quadratic);
-    }
-
-    modelShader.setInt("numLights", num_lights);
+    lights.set(modelShader);
 
     modelShader.setVec3("viewPos", camera.getPosition());
     modelShader.setMat4("projection", projection);
@@ -431,8 +390,8 @@ void render() {
     lampShader.setMat4("projection", projection);
     lampShader.setMat4("view", view);
 
-    for (int i = 0; i < num_lights; i += 1) {
-        const Light &light = lights[i];
+    for (size_t i = 0; i < lights.count(); i += 1) {
+        const Light &light = lights.at(i);
 
         glm::mat4 lampModel;
         lampModel = glm::translate(lampModel, light.position);
@@ -464,6 +423,13 @@ void renderImGui() {
             ImGui::ColorEdit3("clear", (float*)&clearColor);
             ImGui::TreePop();
         }
+        if (ImGui::TreeNode("Camera")) {
+            glm::vec3 pos = camera.getPosition();
+            if (ImGui::DragFloat3("position", (float*)&pos)) {
+                camera.setPosition(pos);
+            }
+            ImGui::TreePop();
+        }
         if (ImGui::TreeNode("Material")) {
             ImGui::Checkbox("enable diffuse", &enableDiffuse);
             ImGui::Checkbox("enable specular", &enableSpecular);
@@ -471,8 +437,8 @@ void renderImGui() {
             ImGui::SliderFloat("shininess", &materialShininess, 4.0f, 128.0f);
             ImGui::TreePop();
         }
-        for (int i = 0; i < num_lights; i += 1) {
-            Light &light = lights[i];
+        for (size_t i = 0; i < lights.count(); i += 1) {
+            Light &light = lights.at(i);
 
             if (ImGui::TreeNode(fmt::format("Light[{}]", i).c_str())) {
                 ImGui::Checkbox("enable", &light.enable);
@@ -503,9 +469,9 @@ void renderImGui() {
                 ImGui::TreePop();
             }
         }
-        if (num_lights < MAX_LIGHTS) {
+        if (!lights.full()) {
             if (ImGui::Button("Add Lights")) {
-                num_lights += 1;
+                lights.addLight();
             }
         }
     }

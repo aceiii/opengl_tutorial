@@ -3,6 +3,7 @@
 #include "camera.cpp"
 #include "mesh.cpp"
 #include "model.cpp"
+#include "light.cpp"
 #include "imgui/imgui.cpp"
 #include "imgui/imgui_demo.cpp"
 #include "imgui/imgui_draw.cpp"
