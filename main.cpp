@@ -390,14 +390,36 @@ void render() {
     }
 
     // draw mesh
+    modelShader.use();
+
     glm::mat4 matModel;
     matModel = glm::translate(matModel, glm::vec3(0.0f, -1.75f, 2.5f));
     matModel = glm::scale(matModel, glm::vec3(0.15f));
 
-    modelShader.use();
+    for (int index = 0; index < (int)lights.size(); index += 1) {
+        const Light &light = lights[index];
+
+        modelShader.setBool(fmt::format("lights[{}].enable", index), light.enable);
+        modelShader.setInt(fmt::format("lights[{}].type", index), light.type);
+        modelShader.setVec3(fmt::format("lights[{}].position", index), light.position);
+        modelShader.setVec3(fmt::format("lights[{}].direction", index), light.direction);
+        modelShader.setFloat(fmt::format("lights[{}].cutOff", index), light.cutoff);
+        modelShader.setFloat(fmt::format("lights[{}].outerCutOff", index), light.outerCutoff);
+
+        modelShader.setFloat(fmt::format("lights[{}].strength", index), light.strength);
+        modelShader.setVec3(fmt::format("lights[{}].ambient", index), light.ambient);
+        modelShader.setVec3(fmt::format("lights[{}].diffuse", index), light.diffuse);
+        modelShader.setVec3(fmt::format("lights[{}].specular", index), light.specular);
+
+        modelShader.setFloat(fmt::format("lights[{}].constant", index), light.constant);
+        modelShader.setFloat(fmt::format("lights[{}].linear", index), light.linear);
+        modelShader.setFloat(fmt::format("lights[{}].quadratic", index), light.quadratic);
+    }
+
+    modelShader.setInt("numLights", num_lights);
+
     modelShader.setMat4("projection", projection);
     modelShader.setMat4("view", view);
-
     modelShader.setMat4("model", matModel);
 
     model->draw(shader);
