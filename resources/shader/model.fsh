@@ -41,7 +41,7 @@ vec3 calculateLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir) {
         return vec3(0.0);
     }
 
-    float shininess = 1.0;
+    float shininess = 32.0;
 
     vec3 lightDir;
     float attenuation = 1.0;
@@ -79,7 +79,6 @@ vec3 calculateLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir) {
 }
 
 void main() {
-    //color = texture(texture_diffuse0, TexCoords);
     vec3 normal = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 result = vec3(0.0);

@@ -418,6 +418,7 @@ void render() {
 
     modelShader.setInt("numLights", num_lights);
 
+    modelShader.setVec3("viewPos", camera.getPosition());
     modelShader.setMat4("projection", projection);
     modelShader.setMat4("view", view);
     modelShader.setMat4("model", matModel);
