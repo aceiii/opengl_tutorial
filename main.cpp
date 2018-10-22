@@ -136,7 +136,15 @@ namespace {
     Lights lights {1};
 
     Shader modelShader;
+    Shader outlineShader;
     std::unique_ptr<Model> model;
+
+    glm::vec3 modelPosition {0.0f, -1.75f, 2.5f};
+    float modelScale = 0.15f;
+
+    bool modelOutline = false;
+    glm::vec3 outlineColor {1.0f, 0.0f, 0.0f};
+    float outlineSize = 1.0f;
 }
 
 bool loadTexture(const std::string &name, GLuint textureId) {
@@ -311,7 +319,12 @@ bool setupOpengl() {
     }
 
     if (!modelShader.init("resources/shader/model.vsh", "resources/shader/model.fsh")) {
-        fmt::print(std::cerr, "Failed to initialize default shaders.\n");
+        fmt::print(std::cerr, "Failed to initialize model shaders.\n");
+        return false;
+    }
+
+    if (!outlineShader.init("resources/shader/outline.vsh", "resources/shader/outline.fsh")) {
+        fmt::print(std::cerr, "Failed to initialize outline shaders.\n");
         return false;
     }
 
@@ -319,7 +332,6 @@ bool setupOpengl() {
 }
 
 void render() {
-    //glClearColor(0.787, 0.944, 1.0, 1.0);
     glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -369,11 +381,11 @@ void render() {
     }
 
     // draw mesh
-    modelShader.use();
-
     glm::mat4 matModel;
-    matModel = glm::translate(matModel, glm::vec3(0.0f, -1.75f, 2.5f));
-    matModel = glm::scale(matModel, glm::vec3(0.15f));
+    matModel = glm::translate(matModel, modelPosition);
+    matModel = glm::scale(matModel, glm::vec3(modelScale));
+
+    modelShader.use();
 
     lights.set(modelShader);
 
@@ -382,7 +394,33 @@ void render() {
     modelShader.setMat4("view", view);
     modelShader.setMat4("model", matModel);
 
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    glStencilMask(0xFF);
+
     model->draw(shader);
+
+    if (modelOutline) {
+        outlineShader.use();
+        outlineShader.setVec3("viewPos", camera.getPosition());
+        outlineShader.setMat4("projection", projection);
+        outlineShader.setMat4("view", view);
+        outlineShader.setMat4("model", matModel);
+        outlineShader.setVec3("outlineColor", outlineColor);
+        outlineShader.setFloat("outlineSize", outlineSize);
+
+        glStencilFunc(GL_NOTEQUAL, 1,  0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+
+        model->draw(outlineShader);
+    }
+
+    glStencilMask(0xFF);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
 
     // Draw light sources
 
@@ -425,7 +463,7 @@ void renderImGui() {
         }
         if (ImGui::TreeNode("Camera")) {
             glm::vec3 pos = camera.getPosition();
-            if (ImGui::DragFloat3("position", (float*)&pos)) {
+            if (ImGui::DragFloat3("position", (float*)&pos), 0.1f) {
                 camera.setPosition(pos);
             }
             ImGui::TreePop();
@@ -435,6 +473,18 @@ void renderImGui() {
             ImGui::Checkbox("enable specular", &enableSpecular);
             ImGui::Checkbox("enable emissive", &enableEmissive);
             ImGui::SliderFloat("shininess", &materialShininess, 4.0f, 128.0f);
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Model")) {
+            ImGui::DragFloat3("position", (float*)&modelPosition, 0.1f);
+            ImGui::DragFloat("scale", &modelScale, 0.001f, 0.001f, 1.0f);
+            ImGui::Checkbox("outline", &modelOutline);
+            if (modelOutline) {
+                ImGui::PushID("outline");
+                ImGui::DragFloat("size", &outlineSize, 0.1f, 0.1f, 10.0f);
+                ImGui::ColorEdit3("color", (float*)&outlineColor);
+                ImGui::PopID();
+            }
             ImGui::TreePop();
         }
         for (size_t i = 0; i < lights.count(); i += 1) {
