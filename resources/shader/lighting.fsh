@@ -69,7 +69,7 @@ vec3 calculateLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir) {
     float diff = max(dot(normal, lightDir), 0.0);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 
-    vec3 ambient = light.strength * light.ambient * vec3(texture(material.diffuse, TexCoords));
+    vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
     vec3 diffuse = light.strength * light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
     vec3 specular = light.strength * light.specular * spec * vec3(texture(material.specular, TexCoords));
     vec3 emissive = vec3(texture(material.emissive, TexCoords));
