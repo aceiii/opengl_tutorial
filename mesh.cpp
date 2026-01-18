@@ -1,14 +1,14 @@
 #include "mesh.h"
-
 #include "glad/glad.h"
-#include "fmt/core.h"
-#include "fmt/ostream.h"
+
+#include <print>
+
 
 Mesh::Mesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices, std::vector<Texture> &textures):_vertices{vertices}, _indices{indices}, _textures{textures} {
-    fmt::print("Mesh::Mesh()\n");
-    fmt::print("  num vertices: {}\n", _vertices.size());
-    fmt::print("  num indices: {}\n", _indices.size());
-    fmt::print("  num textures: {}\n", _textures.size());
+    std::print("Mesh::Mesh()\n");
+    std::print("  num vertices: {}\n", _vertices.size());
+    std::print("  num indices: {}\n", _indices.size());
+    std::print("  num textures: {}\n", _textures.size());
 
     setupMesh();
 }
@@ -32,7 +32,7 @@ void Mesh::draw(Shader shader) {
             number = specularIndex++;
         }
 
-        std::string attributeName = fmt::format("{}{}", name, number);
+        std::string attributeName = std::format("{}{}", name, number);
 
         shader.setInt(attributeName, i);
         glBindTexture(GL_TEXTURE_2D, texture.id);

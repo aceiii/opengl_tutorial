@@ -3,6 +3,7 @@
 #include <string>
 #include <array>
 #include <memory>
+#include <print>
 
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
@@ -15,9 +16,6 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
-
-#include "fmt/core.h"
-#include "fmt/ostream.h"
 
 #include "shader.h"
 #include "camera.h"
@@ -151,7 +149,7 @@ bool loadTexture(const std::string &name, GLuint textureId) {
     int width, height;
     unsigned char *image = SOIL_load_image(name.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
     if (!image) {
-        fmt::print(std::cerr, "loadTexture: Unable to load file '{}'\n", name);
+        std::print(std::cerr, "loadTexture: Unable to load file '{}'\n", name);
         return false;
     }
 
@@ -159,7 +157,7 @@ bool loadTexture(const std::string &name, GLuint textureId) {
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
         if (error == GL_INVALID_VALUE) {
-            fmt::print(std::cerr, "loadTexture: textureId is invalid\n");
+            std::print(std::cerr, "loadTexture: textureId is invalid\n");
         }
 
         SOIL_free_image_data(image);
@@ -276,7 +274,7 @@ bool setupOpengl() {
     glBindVertexArray(0);
 
     if (!shader.init("resources/shader/lighting.vsh", "resources/shader/lighting.fsh")) {
-        fmt::print(std::cerr, "Failed to initialize default shaders.\n");
+        std::print(std::cerr, "Failed to initialize default shaders.\n");
         return false;
     }
 
@@ -307,7 +305,7 @@ bool setupOpengl() {
     glBindVertexArray(0);
 
     if (!lampShader.init("resources/shader/lamp.vsh", "resources/shader/lamp.fsh")) {
-        fmt::print(std::cerr, "Failed to initialize lamp shaders.\n");
+        std::print(std::cerr, "Failed to initialize lamp shaders.\n");
         return false;
     }
 
@@ -315,17 +313,17 @@ bool setupOpengl() {
     model = std::make_unique<Model>("resources/model/nanosuit/nanosuit.obj");
     //model = std::make_unique<Model>("resources/model/Homer_simpson/Homer_Simpson.blend");
     if (!model) {
-        fmt::print(std::cerr, "Failed to initialize nanosuit model.\n");
+        std::print(std::cerr, "Failed to initialize nanosuit model.\n");
         return false;
     }
 
     if (!modelShader.init("resources/shader/model.vsh", "resources/shader/model.fsh")) {
-        fmt::print(std::cerr, "Failed to initialize model shaders.\n");
+        std::print(std::cerr, "Failed to initialize model shaders.\n");
         return false;
     }
 
     if (!outlineShader.init("resources/shader/outline.vsh", "resources/shader/outline.fsh")) {
-        fmt::print(std::cerr, "Failed to initialize outline shaders.\n");
+        std::print(std::cerr, "Failed to initialize outline shaders.\n");
         return false;
     }
 
@@ -491,7 +489,7 @@ void renderImGui() {
         for (size_t i = 0; i < lights.count(); i += 1) {
             Light &light = lights.at(i);
 
-            if (ImGui::TreeNode(fmt::format("Light[{}]", i).c_str())) {
+            if (ImGui::TreeNode(std::format("Light[{}]", i).c_str())) {
                 ImGui::Checkbox("enable", &light.enable);
                 ImGui::RadioButton("type point", (int*)&light.type, 0);
                 ImGui::RadioButton("type directional", (int*)&light.type, 1);
@@ -537,7 +535,7 @@ int main() {
 
     int major, minor, revision;
     glfwGetVersion(&major, &minor, &revision);
-    fmt::print("GLFW: Version: {}.{}.{}\n", major, minor, revision);
+    std::print("GLFW: Version: {}.{}.{}\n", major, minor, revision);
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -562,20 +560,20 @@ int main() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        fmt::print(std::cerr, "Failed to initialize OpenGL context\n");
+        std::print(std::cerr, "Failed to initialize OpenGL context\n");
         return -1;
     }
 
     const GLubyte* gl_version = glGetString(GL_VERSION);
-    fmt::print("OpenGL: Version: {}\n", gl_version);
+    std::print("OpenGL: Version: {}\n", reinterpret_cast<const char*>(gl_version));
 
     GLint nrAttributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-    fmt::print("OpenGL: Maximum number of attributes: {}\n", nrAttributes);
+    std::print("OpenGL: Maximum number of attributes: {}\n", nrAttributes);
 
     int frameBufferWidth, frameBufferHeight;
     glfwGetFramebufferSize(window, &frameBufferWidth, &frameBufferHeight);
-    fmt::print("GLFW: Framebuffer size: ({}, {})\n", frameBufferWidth, frameBufferHeight);
+    std::print("GLFW: Framebuffer size: ({}, {})\n", frameBufferWidth, frameBufferHeight);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -598,7 +596,7 @@ int main() {
 
     while (!forceQuit) {
         if (glfwWindowShouldClose(window) == GLFW_TRUE) {
-            fmt::print("GLFW: Closing window.\n");
+            std::print("GLFW: Closing window.\n");
             forceQuit = true;
         }
 

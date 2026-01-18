@@ -1,27 +1,27 @@
 #include "texture.h"
 
 #include <iostream>
+#include <string>
 #include "glad/glad.h"
 #include "stb_image.h"
-#include "fmt/core.h"
-#include "fmt/ostream.h"
+
 
 bool textureFromFile(const std::string &path, const std::string &directory, unsigned int &textureId) {
     std::string filename;
     if (directory != "") {
-        filename = fmt::format("{}/{}", directory, path);
+        filename = std::format("{}/{}", directory, path);
     } else {
         filename = path;
     }
 
-    fmt::print("Loading texture from file: '{}'\n", filename);
+    std::print("Loading texture from file: '{}'\n", filename);
 
     int width, height, num_components;
     unsigned char *data = stbi_load(filename.c_str(), &width, &height, &num_components, 0);
 
     if (!data) {
         stbi_image_free(data);
-        fmt::print(std::cerr, "Texture failed to load at path: {}\n", filename);
+        std::print(std::cerr, "Texture failed to load at path: {}\n", filename);
         return false;
     }
 
@@ -35,7 +35,7 @@ bool textureFromFile(const std::string &path, const std::string &directory, unsi
     } else if (num_components == 4) {
         format = GL_RGBA;
     } else {
-        fmt::print(std::cerr, "Unknown format\n");
+        std::print(std::cerr, "Unknown format\n");
         stbi_image_free(data);
         return false;
     }

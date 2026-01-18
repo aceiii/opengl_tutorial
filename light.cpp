@@ -1,7 +1,7 @@
 #include "light.h"
 
-#include "fmt/core.h"
-#include "fmt/ostream.h"
+#include <print>
+
 
 Lights::Lights(size_t initial_count)
     :_num_lights{initial_count}
@@ -41,21 +41,21 @@ void Lights::set(Shader shader) {
     for (size_t index = 0; index < _lights.size(); index += 1) {
         const Light &light = _lights[index];
 
-        shader.setBool(fmt::format("lights[{}].enable", index), light.enable);
-        shader.setInt(fmt::format("lights[{}].type", index), light.type);
-        shader.setVec3(fmt::format("lights[{}].position", index), light.position);
-        shader.setVec3(fmt::format("lights[{}].direction", index), light.direction);
-        shader.setFloat(fmt::format("lights[{}].cutOff", index), light.cutoff);
-        shader.setFloat(fmt::format("lights[{}].outerCutOff", index), light.outerCutoff);
+        shader.setBool(std::format("lights[{}].enable", index), light.enable);
+        shader.setInt(std::format("lights[{}].type", index), light.type);
+        shader.setVec3(std::format("lights[{}].position", index), light.position);
+        shader.setVec3(std::format("lights[{}].direction", index), light.direction);
+        shader.setFloat(std::format("lights[{}].cutOff", index), light.cutoff);
+        shader.setFloat(std::format("lights[{}].outerCutOff", index), light.outerCutoff);
 
-        shader.setFloat(fmt::format("lights[{}].strength", index), light.strength);
-        shader.setVec3(fmt::format("lights[{}].ambient", index), light.ambient);
-        shader.setVec3(fmt::format("lights[{}].diffuse", index), light.diffuse);
-        shader.setVec3(fmt::format("lights[{}].specular", index), light.specular);
+        shader.setFloat(std::format("lights[{}].strength", index), light.strength);
+        shader.setVec3(std::format("lights[{}].ambient", index), light.ambient);
+        shader.setVec3(std::format("lights[{}].diffuse", index), light.diffuse);
+        shader.setVec3(std::format("lights[{}].specular", index), light.specular);
 
-        shader.setFloat(fmt::format("lights[{}].constant", index), light.constant);
-        shader.setFloat(fmt::format("lights[{}].linear", index), light.linear);
-        shader.setFloat(fmt::format("lights[{}].quadratic", index), light.quadratic);
+        shader.setFloat(std::format("lights[{}].constant", index), light.constant);
+        shader.setFloat(std::format("lights[{}].linear", index), light.linear);
+        shader.setFloat(std::format("lights[{}].quadratic", index), light.quadratic);
     }
 
     shader.setInt("numLights", _num_lights);

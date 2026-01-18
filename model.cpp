@@ -1,11 +1,11 @@
 #include "model.h"
 
 #include <iostream>
+#include <string>
 
 #include "glad/glad.h"
-#include "fmt/core.h"
-#include "fmt/ostream.h"
 #include "texture.h"
+
 
 namespace {
     std::vector<Texture> textures_loaded;
@@ -26,13 +26,13 @@ void Model::draw(Shader shader) {
 }
 
 bool Model::loadModel(const std::string &path) {
-    fmt::print("Mesh::loadModel('{}')\n", path);
+    std::print("Mesh::loadModel('{}')\n", path);
 
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        fmt::print(std::cerr, "ERROR::ASSIMP::{}", importer.GetErrorString());
+        std::print(std::cerr, "ERROR::ASSIMP::{}", importer.GetErrorString());
         return false;
     }
 
@@ -40,13 +40,13 @@ bool Model::loadModel(const std::string &path) {
 
     processNode(scene->mRootNode, scene);
 
-    fmt::print("Model loaded: {} meshes\n", _meshes.size());
+    std::print("Model loaded: {} meshes\n", _meshes.size());
 
     return true;
 }
 
 void Model::processNode(aiNode *node, const aiScene *scene) {
-    fmt::print("Mesh::processNode()\n");
+    std::print("Mesh::processNode()\n");
     for (unsigned int i = 0; i < node->mNumMeshes; i += 1) {
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
         _meshes.push_back(processMesh(mesh, scene));
@@ -58,9 +58,9 @@ void Model::processNode(aiNode *node, const aiScene *scene) {
 }
 
 Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
-    fmt::print("Mesh::processMesh()\n");
-    fmt::print("  num vertices: {}\n", mesh->mNumVertices);
-    fmt::print("  num faces: {}\n", mesh->mNumFaces);
+    std::print("Mesh::processMesh()\n");
+    std::print("  num vertices: {}\n", mesh->mNumVertices);
+    std::print("  num faces: {}\n", mesh->mNumFaces);
 
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
@@ -102,7 +102,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     }
 
     if (mesh->mMaterialIndex >= 0) {
-        fmt::print("  material index: {}\n", mesh->mMaterialIndex);
+        std::print("  material index: {}\n", mesh->mMaterialIndex);
 
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
         std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
@@ -135,7 +135,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial *material, aiTexture
         if (!skip) {
             unsigned int textureId;
             if (!textureFromFile(string.C_Str(), _directory, textureId)) {
-                fmt::print(std::cerr, "Failed to load texture: {}/{}\n", _directory, string.C_Str());
+                std::print(std::cerr, "Failed to load texture: {}/{}\n", _directory, string.C_Str());
             }
 
 
