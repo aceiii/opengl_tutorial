@@ -10,4 +10,6 @@ SOURCE_FILES="build.cpp \
 g++ -g -std=c++23 -DIMGUI_IMPL_OPENGL_LOADER_GLAD=1 $SOURCE_FILES \
     -I/usr/local/include -I./ -I./assimp/include -I./assimp/build/include \
     -L/usr/lib -L/usr/local/lib -L./assimp/build/lib \
-    -lglfw3 -framework CoreFoundation -framework OpenGL -o build/glfw3-test -lassimp
+    -lglfw3 -lassimp -lz \
+    -framework Cocoa -framework CoreFoundation -framework OpenGL -framework IOKit \
+    -o build/glfw3-test
