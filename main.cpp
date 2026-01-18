@@ -5,6 +5,7 @@
 #include <memory>
 #include <print>
 
+#define GL_SILENCE_DEPRECATION
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
 #include "glad/glad.h"
